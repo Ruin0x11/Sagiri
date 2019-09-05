@@ -1,0 +1,1392 @@
+<!doctype html>
+<html>
+<head>
+  <title>  Wiki - help:api - Danbooru
+</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="top" title="Danbooru" href="/">
+  <meta name="csrf-param" content="authenticity_token" />
+<meta name="csrf-token" content="AYUYlWKDxCD4sCufEqMuxtNXC2/ULILP1jmI1Z3yTUW/NM1hj0LtG0Br4NVG3lf4dh5va2Bq0szT/c1LozStBA==" />
+  <meta name="current-user-name" content="necoma">
+  <meta name="current-user-id" content="475667">
+  <meta name="current-user-can-approve-posts" content="false">
+  <meta name="user-comment-threshold" content="0">
+    <meta name="blacklisted-tags" content="spoilers,guro,scat,furry -rating:s,danganronpa,new_danganronpa_v3 ,persona,overwatch ">
+  <meta name="enable-js-navigation" content="true">
+  <meta name="new-post-navigation-layout" content="true">
+  <meta name="default-image-size" content="large">
+  <meta name="enable-auto-complete" content="true">
+  <meta name="style-usernames" content="false">
+  <meta name="last-forum-read-at" content="1959-12-31 19:00:00 -0500">
+  <meta name="disable-labeled-saved-searches" content="false">
+  <meta name="disable-post-tooltips" content="false">
+  <meta name="disable-mobile-gestures" content="false">
+  <link rel="alternate" type="application/atom+xml" title="ATOM" href="/posts.atom" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="/packs/application-872394f82ce5ceb591f7.js"></script>
+  <link rel="stylesheet" media="screen" href="/packs/application-0225576f3d89dd1476cbbd6ecf0ed963.css" />
+    <script type="application/ld+json">
+      {
+        "@context" : "http://schema.org",
+        "@type" : "Organization",
+        "name" : "Danbooru",
+        "url" : "https://danbooru.donmai.us/",
+        "sameAs" : [
+          "https://twitter.com/danboorubot"
+        ]
+      }
+    </script>
+  <script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "url" : "https://danbooru.donmai.us/",
+    "potentialAction": [{
+      "@type": "SearchAction",
+      "target": "https://danbooru.donmai.us/posts?tags={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "Danbooru",
+    "alternateName": "Find good anime art fast",
+    "url" : "https://danbooru.donmai.us/"
+  }
+  </script>
+    <!-- this is only usable on danbooru.donmai.us -->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-6jHF7Z3XI3fF4XZixAuSu0gGKrXwoX/w3uFPxC56OtjChio7wtTGJWRW53Nhx6Ev" crossorigin="anonymous">
+  <script>
+    if (typeof window.Danbooru !== "object") {
+      window.Danbooru = {};
+    }
+    window.Danbooru.notice = function(msg) {
+      console.warn("Danbooru.notice will be deprecated. Use $(window).trigger('danbooru:notice', msg) instead.")
+      $(window).trigger("danbooru:notice", msg);
+    }
+    window.Danbooru.error = function(msg) {
+      console.warn("Danbooru.error will be deprecated. Use $(window).trigger('danbooru:error', msg) instead.")
+      $(window).trigger("danbooru:error", msg);
+    }
+    window._paq = window._paq || [];
+    window._paq.push(["setDomains", "*.donmai.us"]);
+  </script>
+    <meta name="description" content="Danbooru offers a REST-like API to make scripting easy. All you need is a way to GET, POST, PUT and DELETE to URLs. Responses are given in either XML or JSON format. Testing API calls can be tested on https://testbooru.donmai.us https://testbooru.donmai.us. Scripts should be tested there before using them on the main site. Basics HTTP defines four basic request methods: GET, POST, PUT and DELETE. You'll be using these methods to interact with the Danbooru API. Most API calls that change the state of the database (like creating, updating, or deleting something) require an HTTP POST, PUT or DELETE call. API calls that only retrieve data can typically be done with an HTTP GET call. A URL is considered a resource and the HTTP methods are actions you perform on the resource. For example, GET /posts/1.json /posts/1.json returns a JSON representation of a post. GET /posts/1.xml /posts/1.xml returns an XML representation. POST /posts/1.json would update the resource, for example changing its tags. Some resources require parameters. For example, you can find tags that start with the letter 'a' by calling GET /tags.json?search[name_matches]=a* /tags.json?search[name_matches]=a*. This will give you a JSON listing of all tags with names starting with an a. For POST, PUT and DELETE requests you must pass these parameters along in the body instead of the query parameters. Body parameters may be encoded in one of two ways. The usual way is with key-values pairs using &quot;Content-Type: application/x-www-form-urlencoded&quot;: curl -u &quot;$login:$api_key&quot; -X PUT &quot;https://testbooru.donmai.us/posts/2.json&quot; -d 'post[rating]=s&amp;post[tag_string]=danboo'
+ Parameters may also be encoded as JSON using &quot;Content-Type: application/json&quot;: curl -u &quot;$login:$api_key&quot; -X PUT &quot;https://testbooru.donmai.us/posts/2.json&quot; -d '{ &quot;post&quot;: { &quot;rating&quot;: &quot;s&quot;, &quot;tag_string&quot;: &quot;danboo&quot; } }' -H &quot;Content-Type: application/json&quot; 
+ Responses All API calls that change state will return a single element response (for XML calls). They are formatted like this: &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;response success=&quot;false&quot; reason=&quot;duplicate&quot;/&gt;
+ For JSON responses, they'll look like this: { &quot;success&quot;: false, &quot;reason&quot;: &quot;duplicate&quot; }
+ While you can usually determine success or failure based on the response object, you can also figure out what happened based on the HTTP status code. In addition to the standard ones, Danbooru uses some custom status codes in the 4xx and 5xx range. 200 OK: Request was successful 204 No Content: Request was successful (returned by create actions) 400 Bad Request: The given parameters could not be parsed 401 Unauthorized: Authentication failed 403 Forbidden: Access denied (see help:users for permissions information) 404 Not Found: Not found 410 Gone: Pagination limit (see help:users for pagination limits) 420 Invalid Record: Record could not be saved 422 Locked: The resource is locked and cannot be modified 423 Already Exists: Resource already exists 424 Invalid Parameters: The given parameters were invalid 429 User Throttled: User is throttled, try again later (see help:users for API limits) 500 Internal Server Error: A database timeout, or some unknown error occurred on the server 502 Bad Gateway: Server cannot currently handle the request, try again later (returned during heavy load) 503 Service Unavailable: Server cannot currently handle the request, try again later (returned during downbooru) Authentication If you can't maintain a session via a cookie, you can pass in two parameters to authenticate: &quot;login&quot; and &quot;api_key&quot;. You can discover your API key by visiting your user profile. For legacy users, &quot;password_hash&quot; using the old salted SHA1 hashed password is also supported. You can also authenticate via HTTP Basic Authentication using your user name and API key. ⚠️ Your password hash and API key are personal and must be kept secret. Gaining access to either one allows full access to your account. Do not publicly post your API key or distribute it in scripts. If you are writing a user script for a browser, you do not need to embed an API key. You can rely on the user's session. Rate Limits As per topic #13628, API reads are not limited, but most kinds of update actions are rate-limited according to user level: Basic users: 1 update/second Gold users w/API key: 2 updates/second Platinum/Builder/Mod w/API key: 4 updates/second In addition, users have a burst pool where they can make several consecutive updates before being rate limited. This is again dependent on user level: Basic users: 10 updates at once Gold users w/API key: 30 updates at once Platinum/Builder/Mod w/API key: 60 updates at once This pool is regenerated according to the rate limiting rules mentioned above. Queries Common Search Parameters All search endpoints support a common set of parameters: page Returns the given page. Subject to maximum page limits (see help:users).               You can also use b&lt;id&gt; and a&lt;id&gt; to request results before &lt;id&gt; or after &lt;id&gt;, respectively.               E.g. to get a page of posts before post #999999, you'd make a request to /posts.json?page=b999999. limit The number of results to return per page. The maximum limit is 200 for /posts.json and 1000 for everything else. search[id] search[created_at] search[updated_at] search[order]=custom Returns results in the same order as given by search[id]=3,2,1. Parameter Parsing Numeric search parameters support ranges: 100 &gt;100 &gt;=100 &lt;100 &lt;=100 100,200,300 100..200 (inclusive) Date parameters also support ranges: 2012-01-01 &gt;2012-01-01 &gt;=2012-01-01 &lt;2012-01-01 &lt;=2012-01-01 2012-01-01,2012-01-02 2012-01-01..2013-01-01 (inclusive) Boolean parameters accept any of the following values for true or false: True: true, t, yes, y, on, 1 False: false, f, no, n, off, 0 Most string parameters support using asterisks (*) as wildcards. Wildcards can be escaped with \*. Literal backslashes can be escaped with \\. Versioned Types Artists Listing The base URL is GET /artists.json. search[id] The artist id. search[name] Search for artists with an exact match for this name. search[group_name] Search for artists with an exact match for this group name. search[any_other_name_like] Search for artists that have an other name matching this value. Supports wildcards. search[any_name_matches] Search for artists that have a matching name, group name, or other name. Supports wildcards and regexes. search[url_matches] Search for artists with a matching URL: *pixiv* Search for URLs matching a wildcard expression. /pixiv|twitter/ Search for URLs matching a regular expression. https://www.pixiv.net/member.php?id=9948 https://www.pixiv.net/member.php?id=9948  Search for artists with the given profile URL. https://www.pixiv.net/member_illust.php?mode=medium&amp;illust_id=615946 https://www.pixiv.net/member_illust.php?mode=medium&amp;illust_id=615946  Search for artists given a link to one of their works. search[creator_name] search[creator_id] search[is_active] Search for artists that are active (not deleted). search[is_banned] Search for artists that are banned. search[has_tag] Search for artists that have a non-empty tag. search[order] Can be: name, updated_at, post_count (Defaults to ID). Show The base URL is GET /artists/$id.json where $id is the artist id. Create The base URL is POST /artists.json. artist[name] The artist tag name. artist[other_names] List of alternative names for this artist, space delimited. Replace spaces within names with underscores. artist[group_name] The name of the group this artist belongs to. artist[url_string] List of URLs associated with this artist, whitespace or newline delimited. artist[notes] DText that will be used to create a wiki entry at the same time. artist[is_active] False to mark the artist entry as deleted. True to undelete the artist entry. Builder only. Update The base URL is PUT /artists/$id.json where $id is the artist id. Accepts the same parameters as the create artist action. Delete (Builder+) The base URL is DELETE /artists/$id.json where $id is the artist id. Undelete (Builder+) The base URL is POST /artists/$id/undelete.json where $id is the artist id. Banned The base URL is GET /artists/banned.json. This is a shortcut for an artist listing search with is_banned=true. Revert The base URL is PUT /artists/$id/revert.json where $id is the artist id. version_id REQUIRED The artist version id to revert to. Artist Commentary Listing The base URL is GET /artist_commentaries.json. search[text_matches] search[post_id] search[post_tags_match] The commentary's post's tags match the given terms. Meta-tags not supported. search[original_present] Can be: yes, no search[translated_present] Can be: yes, no Create or Update The base URL is PUT /artist_commentaries/create_or_update.json artist_commentary[post_id] REQUIRED artist_commentary[original_title] artist_commentary[original_description] artist_commentary[translated_title] artist_commentary[translated_description] artist_commentary[add_commentary_tag] artist_commentary[add_commentary_request_tag] artist_commentary[add_commentary_check_tag] artist_commentary[add_partial_commentary_tag] artist_commentary[remove_commentary_tag] artist_commentary[remove_commentary_request_tag] artist_commentary[remove_commentary_check_tag] artist_commentary[remove_partial_commentary_tag] Revert The base URL is PUT /artist_commentaries/$id/revert.json where $id is the post id (not the artist commentary id). version_id REQUIRED The artist commentary version id to revert to. Notes Listing The base URL is GET /notes.json. search[body_matches] The note's body matches the given terms. Use a * in the search terms to search for raw strings. search[post_id] search[post_tags_match] The note's post's tags match the given terms. Meta-tags are not supported. search[creator_name] The creator's name. Exact match. search[creator_id] The creator's user id. search[is_active] Can be: true, false Use /notes.json?group_by=note&amp;search[post_id]=$id to get notes from $id. Show The base URL is GET /notes/$id.json where $id is the note id. Create note[post_id] REQUIRED note[x] REQUIRED The x coordinates of the note in pixels, with respect to the top-left corner of the image. note[y] REQUIRED The y coordinates of the note in pixels, with respect to the top-left corner of the image. note[width] REQUIRED The width of the note in pixels. note[height] REQUIRED The height of the note in pixels. note[body] REQUIRED The body of the note. Update The base URL is PUT /notes/$id.json where $id is the note id. note[x] The x coordinates of the note in pixels, with respect to the top-left corner of the image. note[y] The y coordinates of the note in pixels, with respect to the top-left corner of the image. note[width] The width of the note in pixels. note[height] The height of the note in pixels. note[body] The body of the note. Delete The base URL is DELETE /notes/$id.json where $id is the note id. Revert The base URL is PUT /notes/$id/revert.json where $id is the note id. version_id REQUIRED The note version id to revert to. Pools Listing The base URL is GET /pools.json. search[name_matches] Supports patterns. search[id] Can search for multiple ID's at once, separated by commas. search[description_matches] search[creator_name] search[creator_id] search[is_active] Can be: true, false search[is_deleted] Can be: true, false search[category] Can be: series, collection search[order] Can be: name, created_at, post_count, date (Defaults to updated at) Show The base URL is GET /pools/$id.json where $id is the pool id. Create The base URL is POST /pools.json. pool[name] REQUIRED pool[description] REQUIRED pool[category] Can be: series, collection Update The base URL is PUT /pools/$id.json where $id is the pool id. pool[name] pool[description] pool[post_ids] List of space delimited post ids. pool[is_active] Can be: 1, 0 pool[category] Can be: series, collection Delete (Moderator+) The base URL is DELETE /pools/$id.json where $id is the pool id. Undelete (Moderator+) The base URL is POST /pools/$id/undelete.json where $id is the pool id. Revert The base URL is PUT /pools/$id/revert.json where $id is the pool id. version_id REQUIRED Posts Listing The base URL is GET /posts.json. limit How many posts you want to retrieve. page The page number. tags The tags to search for. Any tag combination that works on the web site will work here. This includes all the meta-tags. md5 The md5 of the image to search for. random Can be: true, false raw When this parameter is set the tags parameter will not be parsed for aliased tags, metatags or multiple tags, and will instead be parsed as a single literal tag. Show The base URL is GET /posts/$id.json where $id is the post id. Create You cannot directly create posts. You must create an upload, which is then converted into a post. Update The base URL is PUT /posts/$id.json where $id is the post id. Member+ post[tag_string] A space delimited list of tags. post[rating] The rating for the post. Can be: safe, questionable, or explicit. post[source] If this is a URL, Danbooru will download the file. post[parent_id] The ID of the parent post. post[has_embedded_notes] Can be: 0, 1 Builder+ post[is_rating_locked] Can be: 0, 1 post[is_note_locked] Can be: 0, 1 Admin post[is_status_locked] Can be: 0, 1 Delete You cannot delete posts. You can only flag them for deletion (see PostFlag resource). Revert The base URL is PUT /posts/$id/revert.json where $id is the post id. version_id REQUIRED The post version id to revert to. Copy notes The base URL is PUT /posts/$id/copy_notes.json where $id is the post id. other_post_id REQUIRED The id of the post to copy notes to. Mark as translated The base URL is PUT /posts/$id/mark_as_translated.json where $id is the post id. post[check_translation] post[partially_translated] Vote The base URL is POST /posts/$post_id/votes.json where $post_id is the post id. score REQUIRED Can be: up, down. Unvote The base URL is DELETE /posts/$post_id/votes.json where $post_id is the post id. Wiki Pages Listing The base URL is GET /wiki_pages.json. search[title] search[creator_id] search[body_matches] search[other_names_match] search[creator_name] search[hide_deleted] Can be: y search[other_names_present] Can be: yes, no search[order] Can be: date (or time), title (or name). Show The base URL is GET /wiki_pages/$id.json where $id is the wiki page id. Create The base URL is POST /wiki_pages.json. wiki_page[title] REQUIRED wiki_page[body] REQUIRED wiki_page[other_names] Update The base URL is PUT /wiki_pages/$id.json where $id is the wiki page id. wiki_page[title] wiki_page[body] wiki_page[other_names] wiki_page[is_locked] Can be: 0,1 (Builder+) wiki_page[is_deleted] Can be: 0,1 (Builder+) Delete (Builder+) The base URL is DELETE /wiki_pages/$id.json where $id is the pool id. Revert The base URL is PUT /wiki_pages/$id/revert.json where $id is the wiki page id. version_id REQUIRED Type Versions Artist Versions Listing The base URL is GET /artist_versions.json. search[name] search[updater_name] search[updater_id] search[artist_id] search[is_active] Can be: true, false search[is_banned] Can be: true, false search[order] Can be: name (Defaults to ID) Artist Commentary Versions Listing The base URL is GET /artist_commentary_versions.json. search[updater_id] search[post_id] Note Versions Listing The base URL is GET /note_versions.json. search[updater_id] search[post_id] search[note_id] Pool Versions Listing The base URL is GET /pool_versions.json. search[updater_id] search[updater_name] search[pool_id] Post Versions Listing The base URL is GET /post_versions.json. search[updater_name] search[updater_id] search[post_id] search[start_id] Show The base URL is GET /post_versions/$id.json where $id is the post version id. Undo The base URL is PUT /post_versions/$id/undo.json where $id is the post version id. Wiki Page Versions Listing The base URL is GET /wiki_page_versions.json. search[updater_id] search[wiki_page_id] Show The base URL is GET /wiki_page_versions/$id.json where $id is the wiki page version id. Non-versioned Types Comments Listing The base URL is GET /comments.json. limit How many posts you want to retrieve. page The page number. group_by Must be: comment, else it will return posts. search[body_matches] Body contains the given terms. search[post_id] search[post_tags_match] The comment's post's tags match the given terms. Meta-tags not supported. search[creator_name] The name of the creator (exact match) search[creator_id] The user id of the creator search[is_deleted] Can be: true,false Create The base URL is POST /comments.json comment[post_id] REQUIRED comment[body] REQUIRED comment[do_not_bump_post] Set to 1 if you do not want the post to be bumped to the top of the comment listing Update The base URL is PUT /comments/$id.json where $id is the comment id. comment[body] REQUIRED Show The base URL is GET /comments/$id.json where $id is the comment id. Delete The base URL is DELETE /comments/$id.json where $id is the comment id. Undelete The base URL is POST /comments/$id/undelete.json where $id is the comment id. Vote The base URL is POST /comments/$id/votes.json where $id is the comment id. score REQUIRED Can be: up, down. Unvote The base URL is POST /posts/$id/unvote.json where $id is the comment id. Dmails Listing The base URL is GET /dmails.json. You can only view dmails you own. search[message_matches] The message body contains the given terms. search[to_name] The recipient's name. search[to_id] The recipient's user id. search[from_name] The sender's name. search[from_id] The sender's user id. search[read] Can be: true, false Show The base URL is GET /dmails/$id.json where $id is the dmail id. You can only view dmails you own. Create The base URL is POST /dmails.json. dmail[to_name] The recipient's name. dmail[title] The title of the message. dmail[body] The body of the message. Delete The base URL is DELETE /dmails/$id.json where $id is the dmail id. You can only delete dmails you own. Forum Posts Listing The base URL is GET /forum_posts.json. search[creator_id] search[creator_name] search[topic_id] search[topic_title_matches] search[topic_category_id] Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively) search[body_matches] Create The base URL is POST /forum_posts.json. forum_post[topic_id] forum_post[body] Update (Moderator+) The base URL is PUT /forum_posts/$id.json where $id is the forum post id. forum_post[body] Delete (Moderator+) The base URL is DELETE /forum_posts/$id.json where $id is the forum post id. Undelete (Moderator+) The base URL is POST /forum_posts/$id/undelete.json where $id is the forum post id. Forum Topics Listing The base URL is GET /forum_topics.json. search[title_matches] Search body for the given terms. search[title] Exact title match. search[category_id] Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively) Show The base URL is GET /forum_topics/$id.json where $id is the forum topic id. Create The base URL is POST /forum_topics.json. forum_topic[title] forum_topic[original_post_attributes][body] Message of the initial post. forum_topic[category_id] Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively) Update The base URL is PUT /forum_topics/$id.json where $id is the forum topic id. forum_topic[title] forum_topic[category_id] Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively) Delete (Moderator+) The base URL is DELETE /forum_topics/$id.json where $id is the forum topic id. Undelete (Moderator+) The base URL is POST /forum_topics/$id/undelete.json where $id is the forum topic id. Post Flags Listing The base URL is GET /post_flags.json. search[creator_id] The user id of the flag's creator. search[creator_name] The name of the flag's creator. search[post_id] The post id if the flag. Show The base URL is GET /post_flags/$post_flag_id.json where $post_flag_id is the post flag id. Create The base URL is POST /post_flags.json. post_flag[post_id] REQUIRED The id of the flagged post. post_flag[reason] REQUIRED The reason of the flagging. Post Appeals Listing The base URL is GET /post_appeals.json. search[creator_id] The user id of the appeal's creator. search[creator_name] The name of the appeal's creator. search[post_id] The post id if the appeal. Show The base URL is GET /post_appeals/$post_appeal_id.json where $post_appeal_id is the post appeal id. Create The base URL is POST /post_appeals.json. post_appeal[post_id] REQUIRED The id of the appealed post. post_appeal[reason] REQUIRED The reason of the appeal. Tags Listing The base URL is GET /tags.json. search[name_matches] Supports patterns. search[name] Allows searching for multiple tags with exact given names, separated by commas. e.g. search[name]=touhou,original,k-on! would return the three listed tags. search[category] Can be: 0, 1, 3, 4 (general, artist, copyright, character respectively) search[hide_empty] Can be: yes, no. Excludes tags with 0 posts when &quot;yes&quot;. search[has_wiki] Can be: yes, no search[has_artist] Can be: yes, no search[order] Can be: name, date, count (Default is date) Show The base URL is GET /pools/$id.json where $id is the pool id. Update The base URL is PUT /pools/$id.json where $id is the pool id. pool[category] Can be: 0, 1, 3, 4 (general, artist, copyright, character respectively) Tag Aliases Listing The base URL is GET /tag_aliases.json. search[name_matches] Match antecedent or consequent name. search[antecedent_name] Match antecedent name (exact match). search[id] The tag alias id. Tag Implications Listing The base URL is GET /tag_implications.json. search[name_matches] Match antecedent or consequent name. search[antecedent_name] Match antecedent name (exact match). search[id] The tag implication id. Uploads Listing The base URL is GET /uploads.json. search[uploader_id] The id of the uploader. search[uploader_name] The name of the uploader. search[source] The source of the upload (exact string match). Show The base URL is GET /uploads/$id.json where $id is the upload id. Create The base URL is POST /uploads.json. upload[file] The file data encoded as a multipart form. upload[source] The source URL. upload[rating] REQUIRED Can be: s, q, or e. Alternatively, you can specify rating:safe, rating:questionable, or rating:explicit in the tag string. upload[parent_id] The parent post id. upload[tag_string] REQUIRED The tags. Either the file or the source must be provided. Users Levels Users have a number attribute called level representing their role. The current levels are: Member: 20 Gold: 30 Platinum: 31 Builder: 32 Janitor: 35 Moderator: 40 Admin: 50 Listing The base URL is GET /users.json. search[name] Supports patterns. search[name_matches] Same functionality as name. search[min_level] Minimum level (see section on levels). search[max_level] Maximum level (see section on levels). search[level] Current level (see section on levels). search[id] The user id. search[order] Can be: name, post_upload_count, note_count, post_update_count, date. Show The base URL is GET /users/$id.json where $id is the user id. Other Functions Related Tags Show The base URL is GET /related_tag.json. query REQUIRED The tag to find the related tags for. category If specified, show only tags of a specific category. Can be: general, artist, copyright, character List of API endpoints API Endpoints GET    /                                                          posts#index
+POST   /admin/alias_and_implication_import(.:format)              admin/alias_and_implication_imports#create
+GET    /admin/alias_and_implication_import/new(.:format)          admin/alias_and_implication_imports#new
+GET    /admin/dashboard(.:format)                                 admin/dashboards#show
+PATCH  /admin/users/:id(.:format)                                 admin/users#update
+PUT    /admin/users/:id(.:format)                                 admin/users#update
+GET    /admin/users/:id/edit(.:format)                            admin/users#edit
+GET    /advertisements(.:format)                                  advertisements#index
+POST   /advertisements(.:format)                                  advertisements#create
+POST   /advertisements/:advertisement_id/hits(.:format)           advertisement_hits#create
+GET    /advertisements/:id(.:format)                              advertisements#show
+PATCH  /advertisements/:id(.:format)                              advertisements#update
+PUT    /advertisements/:id(.:format)                              advertisements#update
+DELETE /advertisements/:id(.:format)                              advertisements#destroy
+GET    /advertisements/:id/edit(.:format)                         advertisements#edit
+GET    /advertisements/new(.:format)                              advertisements#new
+POST   /api_keys(.:format)                                        api_keys#create
+GET    /api_keys/new(.:format)                                    api_keys#new
+GET    /artist(.:format)                                          redirect(301)
+GET    /artist/history/:id(.:format)                              redirect(301, /artist_versions?search[artist_id]=%{id})
+GET    /artist/index(.:format)                                    redirect(301)
+GET    /artist/index.json(.:format)                               legacy#artists {:format=&gt;/json/}
+GET    /artist/index.xml(.:format)                                legacy#artists {:format=&gt;/xml/}
+GET    /artist/recent_changes(.:format)                           redirect(301, /artist_versions)
+GET    /artist/show(.:format)                                     redirect(301)
+GET    /artist/show/:id(.:format)                                 redirect(301, /artists/%{id})
+GET    /artist_commentaries(.:format)                             artist_commentaries#index
+POST   /artist_commentaries(.:format)                             artist_commentaries#create
+GET    /artist_commentaries/:id(.:format)                         artist_commentaries#show
+PATCH  /artist_commentaries/:id(.:format)                         artist_commentaries#update
+PUT    /artist_commentaries/:id(.:format)                         artist_commentaries#update
+DELETE /artist_commentaries/:id(.:format)                         artist_commentaries#destroy
+GET    /artist_commentaries/:id/edit(.:format)                    artist_commentaries#edit
+PUT    /artist_commentaries/:id/revert(.:format)                  artist_commentaries#revert
+PUT    /artist_commentaries/create_or_update(.:format)            artist_commentaries#create_or_update
+GET    /artist_commentaries/new(.:format)                         artist_commentaries#new
+GET    /artist_commentaries/search(.:format)                      artist_commentaries#search
+GET    /artist_commentary_versions(.:format)                      artist_commentary_versions#index
+GET    /artist_versions(.:format)                                 artist_versions#index
+GET    /artist_versions/search(.:format)                          artist_versions#search
+GET    /artists(.:format)                                         artists#index
+POST   /artists(.:format)                                         artists#create
+GET    /artists/:id(.:format)                                     artists#show
+PATCH  /artists/:id(.:format)                                     artists#update
+PUT    /artists/:id(.:format)                                     artists#update
+DELETE /artists/:id(.:format)                                     artists#destroy
+PUT    /artists/:id/ban(.:format)                                 artists#ban
+GET    /artists/:id/edit(.:format)                                artists#edit
+PUT    /artists/:id/revert(.:format)                              artists#revert
+PUT    /artists/:id/unban(.:format)                               artists#unban
+POST   /artists/:id/undelete(.:format)                            artists#undelete
+GET    /artists/banned(.:format)                                  artists#banned
+GET    /artists/finder(.:format)                                  artists#finder
+GET    /artists/new(.:format)                                     artists#new
+GET    /artists/show_or_new(.:format)                             artists#show_or_new
+GET    /bans(.:format)                                            bans#index
+POST   /bans(.:format)                                            bans#create
+GET    /bans/:id(.:format)                                        bans#show
+PATCH  /bans/:id(.:format)                                        bans#update
+PUT    /bans/:id(.:format)                                        bans#update
+DELETE /bans/:id(.:format)                                        bans#destroy
+GET    /bans/:id/edit(.:format)                                   bans#edit
+GET    /bans/new(.:format)                                        bans#new
+GET    /bulk_update_requests(.:format)                            bulk_update_requests#index
+POST   /bulk_update_requests(.:format)                            bulk_update_requests#create
+GET    /bulk_update_requests/:id(.:format)                        bulk_update_requests#show
+PATCH  /bulk_update_requests/:id(.:format)                        bulk_update_requests#update
+PUT    /bulk_update_requests/:id(.:format)                        bulk_update_requests#update
+DELETE /bulk_update_requests/:id(.:format)                        bulk_update_requests#destroy
+POST   /bulk_update_requests/:id/approve(.:format)                bulk_update_requests#approve
+GET    /bulk_update_requests/:id/edit(.:format)                   bulk_update_requests#edit
+GET    /bulk_update_requests/new(.:format)                        bulk_update_requests#new
+GET    /comment(.:format)                                         redirect(301)
+GET    /comment/index(.:format)                                   redirect(301)
+GET    /comment/new(.:format)                                     redirect(301, /comments)
+GET    /comment/search(.:format)                                  redirect(301)
+GET    /comment/show/:id(.:format)                                redirect(301, /comments/%{id})
+GET    /comments(.:format)                                        comments#index
+POST   /comments(.:format)                                        comments#create
+POST   /comments/:comment_id/votes(.:format)                      comment_votes#create
+DELETE /comments/:comment_id/votes/:id(.:format)                  comment_votes#destroy
+GET    /comments/:id(.:format)                                    comments#show
+PATCH  /comments/:id(.:format)                                    comments#update
+PUT    /comments/:id(.:format)                                    comments#update
+DELETE /comments/:id(.:format)                                    comments#destroy
+GET    /comments/:id/edit(.:format)                               comments#edit
+POST   /comments/:id/undelete(.:format)                           comments#undelete
+PUT    /comments/:id/unvote(.:format)                             comments#unvote
+GET    /comments/index_all(.:format)                              comments#index_all
+GET    /comments/new(.:format)                                    comments#new
+GET    /comments/search(.:format)                                 comments#search
+GET    /counts(.:format)                                          counts#index
+POST   /counts(.:format)                                          counts#create
+GET    /counts/:id(.:format)                                      counts#show
+PATCH  /counts/:id(.:format)                                      counts#update
+PUT    /counts/:id(.:format)                                      counts#update
+DELETE /counts/:id(.:format)                                      counts#destroy
+GET    /counts/:id/edit(.:format)                                 counts#edit
+GET    /counts/new(.:format)                                      counts#new
+GET    /counts/posts(.:format)                                    counts#posts
+GET    /delayed_jobs(.:format)                                    delayed_jobs#index
+GET    /dmails(.:format)                                          dmails#index
+POST   /dmails(.:format)                                          dmails#create
+GET    /dmails/:id(.:format)                                      dmails#show
+PATCH  /dmails/:id(.:format)                                      dmails#update
+PUT    /dmails/:id(.:format)                                      dmails#update
+DELETE /dmails/:id(.:format)                                      dmails#destroy
+GET    /dmails/:id/edit(.:format)                                 dmails#edit
+POST   /dmails/mark_all_as_read(.:format)                         dmails#mark_all_as_read
+GET    /dmails/new(.:format)                                      dmails#new
+GET    /dmails/search(.:format)                                   dmails#search
+POST   /dtext_preview(.:format)                                   dtext_previews#create
+GET    /explore/posts(.:format)                                   explore/posts#index
+POST   /explore/posts(.:format)                                   explore/posts#create
+GET    /explore/posts/:id(.:format)                               explore/posts#show
+PATCH  /explore/posts/:id(.:format)                               explore/posts#update
+PUT    /explore/posts/:id(.:format)                               explore/posts#update
+DELETE /explore/posts/:id(.:format)                               explore/posts#destroy
+GET    /explore/posts/:id/edit(.:format)                          explore/posts#edit
+GET    /explore/posts/hot(.:format)                               explore/posts#hot
+GET    /explore/posts/intro(.:format)                             explore/posts#intro
+GET    /explore/posts/missed_searches(.:format)                   explore/posts#missed_searches
+GET    /explore/posts/new(.:format)                               explore/posts#new
+GET    /explore/posts/popular(.:format)                           explore/posts#popular
+GET    /explore/posts/searches(.:format)                          explore/posts#searches
+GET    /favorite(.:format)                                        redirect(301)
+GET    /favorite/index(.:format)                                  redirect(301)
+GET    /favorite/list_users.json(.:format)                        legacy#unavailable
+GET    /favorite_groups(.:format)                                 favorite_groups#index
+POST   /favorite_groups(.:format)                                 favorite_groups#create
+GET    /favorite_groups/:favorite_group_id/order/edit(.:format)   favorite_group_orders#edit
+GET    /favorite_groups/:id(.:format)                             favorite_groups#show
+PATCH  /favorite_groups/:id(.:format)                             favorite_groups#update
+PUT    /favorite_groups/:id(.:format)                             favorite_groups#update
+DELETE /favorite_groups/:id(.:format)                             favorite_groups#destroy
+PUT    /favorite_groups/:id/add_post(.:format)                    favorite_groups#add_post
+GET    /favorite_groups/:id/edit(.:format)                        favorite_groups#edit
+GET    /favorite_groups/new(.:format)                             favorite_groups#new
+GET    /favorites(.:format)                                       favorites#index
+POST   /favorites(.:format)                                       favorites#create
+GET    /favorites/:id(.:format)                                   favorites#show
+PATCH  /favorites/:id(.:format)                                   favorites#update
+PUT    /favorites/:id(.:format)                                   favorites#update
+DELETE /favorites/:id(.:format)                                   favorites#destroy
+GET    /favorites/:id/edit(.:format)                              favorites#edit
+GET    /favorites/new(.:format)                                   favorites#new
+GET    /forum(.:format)                                           redirect(301)
+GET    /forum/index(.:format)                                     redirect(301)
+GET    /forum/search(.:format)                                    redirect(301, /forum_posts/search)
+GET    /forum/show/:id(.:format)                                  redirect(301)
+GET    /forum_posts(.:format)                                     forum_posts#index
+POST   /forum_posts(.:format)                                     forum_posts#create
+GET    /forum_posts/:id(.:format)                                 forum_posts#show
+PATCH  /forum_posts/:id(.:format)                                 forum_posts#update
+PUT    /forum_posts/:id(.:format)                                 forum_posts#update
+DELETE /forum_posts/:id(.:format)                                 forum_posts#destroy
+GET    /forum_posts/:id/edit(.:format)                            forum_posts#edit
+POST   /forum_posts/:id/undelete(.:format)                        forum_posts#undelete
+GET    /forum_posts/new(.:format)                                 forum_posts#new
+GET    /forum_posts/search(.:format)                              forum_posts#search
+GET    /forum_topics(.:format)                                    forum_topics#index
+POST   /forum_topics(.:format)                                    forum_topics#create
+POST   /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#create
+GET    /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#show
+PATCH  /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#update
+PUT    /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#update
+DELETE /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#destroy
+GET    /forum_topics/:forum_topic_id/visit/edit(.:format)         forum_topic_visits#edit
+GET    /forum_topics/:forum_topic_id/visit/new(.:format)          forum_topic_visits#new
+GET    /forum_topics/:id(.:format)                                forum_topics#show
+PATCH  /forum_topics/:id(.:format)                                forum_topics#update
+PUT    /forum_topics/:id(.:format)                                forum_topics#update
+DELETE /forum_topics/:id(.:format)                                forum_topics#destroy
+POST   /forum_topics/:id/create_merge(.:format)                   forum_topics#create_merge
+GET    /forum_topics/:id/edit(.:format)                           forum_topics#edit
+GET    /forum_topics/:id/new_merge(.:format)                      forum_topics#new_merge
+POST   /forum_topics/:id/subscribe(.:format)                      forum_topics#subscribe
+POST   /forum_topics/:id/undelete(.:format)                       forum_topics#undelete
+POST   /forum_topics/:id/unsubscribe(.:format)                    forum_topics#unsubscribe
+POST   /forum_topics/mark_all_as_read(.:format)                   forum_topics#mark_all_as_read
+GET    /forum_topics/new(.:format)                                forum_topics#new
+GET    /fposts(.:format)                                          forum_posts#index
+POST   /fposts(.:format)                                          forum_posts#create
+GET    /fposts/:id(.:format)                                      forum_posts#show
+PATCH  /fposts/:id(.:format)                                      forum_posts#update
+PUT    /fposts/:id(.:format)                                      forum_posts#update
+DELETE /fposts/:id(.:format)                                      forum_posts#destroy
+GET    /fposts/:id/edit(.:format)                                 forum_posts#edit
+GET    /fposts/new(.:format)                                      forum_posts#new
+GET    /ftopics(.:format)                                         forum_topics#index
+POST   /ftopics(.:format)                                         forum_topics#create
+GET    /ftopics/:id(.:format)                                     forum_topics#show
+PATCH  /ftopics/:id(.:format)                                     forum_topics#update
+PUT    /ftopics/:id(.:format)                                     forum_topics#update
+DELETE /ftopics/:id(.:format)                                     forum_topics#destroy
+GET    /ftopics/:id/edit(.:format)                                forum_topics#edit
+GET    /ftopics/new(.:format)                                     forum_topics#new
+GET    /help/:title(.:format)                                     redirect(301)
+GET    /intro(.:format)                                           redirect(301, /explore/posts/intro)
+GET    /ip_bans(.:format)                                         ip_bans#index
+POST   /ip_bans(.:format)                                         ip_bans#create
+GET    /ip_bans/:id(.:format)                                     ip_bans#show
+PATCH  /ip_bans/:id(.:format)                                     ip_bans#update
+PUT    /ip_bans/:id(.:format)                                     ip_bans#update
+DELETE /ip_bans/:id(.:format)                                     ip_bans#destroy
+GET    /ip_bans/:id/edit(.:format)                                ip_bans#edit
+GET    /ip_bans/new(.:format)                                     ip_bans#new
+POST   /iqdb_queries(.:format)                                    iqdb_queries#create
+GET    /janitor_trials(.:format)                                  janitor_trials#index
+POST   /janitor_trials(.:format)                                  janitor_trials#create
+GET    /janitor_trials/:id(.:format)                              janitor_trials#show
+PATCH  /janitor_trials/:id(.:format)                              janitor_trials#update
+PUT    /janitor_trials/:id(.:format)                              janitor_trials#update
+DELETE /janitor_trials/:id(.:format)                              janitor_trials#destroy
+PUT    /janitor_trials/:id/demote(.:format)                       janitor_trials#demote
+GET    /janitor_trials/:id/edit(.:format)                         janitor_trials#edit
+PUT    /janitor_trials/:id/promote(.:format)                      janitor_trials#promote
+GET    /janitor_trials/new(.:format)                              janitor_trials#new
+GET    /janitor_trials/test(.:format)                             janitor_trials#test
+GET    /jobs(.:format)                                            jobs#index
+POST   /jobs(.:format)                                            jobs#create
+GET    /jobs/:id(.:format)                                        jobs#show
+PATCH  /jobs/:id(.:format)                                        jobs#update
+PUT    /jobs/:id(.:format)                                        jobs#update
+DELETE /jobs/:id(.:format)                                        jobs#destroy
+GET    /jobs/:id/edit(.:format)                                   jobs#edit
+GET    /jobs/new(.:format)                                        jobs#new
+POST   /landing(.:format)                                         landings#create
+GET    /landing(.:format)                                         landings#show
+PATCH  /landing(.:format)                                         landings#update
+PUT    /landing(.:format)                                         landings#update
+DELETE /landing(.:format)                                         landings#destroy
+GET    /landing/edit(.:format)                                    landings#edit
+GET    /landing/new(.:format)                                     landings#new
+GET    /m/posts(.:format)                                         mobile/posts#index
+GET    /m/posts/:id(.:format)                                     mobile/posts#show
+GET    /maintenance/user/deletion(.:format)                       maintenance/user/deletions#show
+DELETE /maintenance/user/deletion(.:format)                       maintenance/user/deletions#destroy
+PATCH  /maintenance/user/dmail_filter(.:format)                   maintenance/user/dmail_filters#update
+PUT    /maintenance/user/dmail_filter(.:format)                   maintenance/user/dmail_filters#update
+GET    /maintenance/user/dmail_filter/edit(.:format)              maintenance/user/dmail_filters#edit
+POST   /maintenance/user/email_change(.:format)                   maintenance/user/email_changes#create
+GET    /maintenance/user/email_change/new(.:format)               maintenance/user/email_changes#new
+GET    /maintenance/user/email_notification(.:format)             maintenance/user/email_notifications#show
+DELETE /maintenance/user/email_notification(.:format)             maintenance/user/email_notifications#destroy
+POST   /maintenance/user/login_reminder(.:format)                 maintenance/user/login_reminders#create
+GET    /maintenance/user/login_reminder/new(.:format)             maintenance/user/login_reminders#new
+POST   /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#create
+PATCH  /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#update
+PUT    /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#update
+GET    /maintenance/user/password_reset/edit(.:format)            maintenance/user/password_resets#edit
+GET    /maintenance/user/password_reset/new(.:format)             maintenance/user/password_resets#new
+GET    /meta_searches/tags(.:format)                              meta_searches#tags
+GET    /mobile/posts(.:format)                                    mobile/posts#index
+GET    /mobile/posts/:id(.:format)                                mobile/posts#show
+GET    /mod_actions(.:format)                                     mod_actions#index
+POST   /mod_actions(.:format)                                     mod_actions#create
+GET    /mod_actions/:id(.:format)                                 mod_actions#show
+PATCH  /mod_actions/:id(.:format)                                 mod_actions#update
+PUT    /mod_actions/:id(.:format)                                 mod_actions#update
+DELETE /mod_actions/:id(.:format)                                 mod_actions#destroy
+GET    /mod_actions/:id/edit(.:format)                            mod_actions#edit
+GET    /mod_actions/new(.:format)                                 mod_actions#new
+GET    /moderator/dashboard(.:format)                             moderator/dashboards#show
+GET    /moderator/invitations(.:format)                           moderator/invitations#index
+POST   /moderator/invitations(.:format)                           moderator/invitations#create
+GET    /moderator/invitations(.:format)                           moderator/invitations#index
+POST   /moderator/invitations(.:format)                           moderator/invitations#create
+GET    /moderator/invitations/:id(.:format)                       moderator/invitations#show
+GET    /moderator/invitations/new(.:format)                       moderator/invitations#new
+GET    /moderator/invitations/new(.:format)                       moderator/invitations#new
+GET    /moderator/ip_addrs(.:format)                              moderator/ip_addrs#index
+GET    /moderator/ip_addrs(.:format)                              moderator/ip_addrs#index
+GET    /moderator/ip_addrs/search(.:format)                       moderator/ip_addrs#search
+GET    /moderator/ip_addrs/search(.:format)                       moderator/ip_addrs#search
+POST   /moderator/post/approval(.:format)                         moderator/post/approvals#create
+POST   /moderator/post/disapproval(.:format)                      moderator/post/disapprovals#create
+POST   /moderator/post/posts/:id/ban(.:format)                    moderator/post/posts#ban
+GET    /moderator/post/posts/:id/confirm_ban(.:format)            moderator/post/posts#confirm_ban
+GET    /moderator/post/posts/:id/confirm_delete(.:format)         moderator/post/posts#confirm_delete
+GET    /moderator/post/posts/:id/confirm_move_favorites(.:format) moderator/post/posts#confirm_move_favorites
+POST   /moderator/post/posts/:id/delete(.:format)                 moderator/post/posts#delete
+POST   /moderator/post/posts/:id/expunge(.:format)                moderator/post/posts#expunge
+POST   /moderator/post/posts/:id/move_favorites(.:format)         moderator/post/posts#move_favorites
+POST   /moderator/post/posts/:id/unban(.:format)                  moderator/post/posts#unban
+POST   /moderator/post/posts/:id/undelete(.:format)               moderator/post/posts#undelete
+GET    /moderator/post/queue(.:format)                            moderator/post/queues#show
+GET    /moderator/post/queue/random(.:format)                     moderator/post/queues#random
+PATCH  /moderator/tag(.:format)                                   moderator/tags#update
+PUT    /moderator/tag(.:format)                                   moderator/tags#update
+GET    /moderator/tag/edit(.:format)                              moderator/tags#edit
+GET    /news_updates(.:format)                                    news_updates#index
+POST   /news_updates(.:format)                                    news_updates#create
+GET    /news_updates/:id(.:format)                                news_updates#show
+PATCH  /news_updates/:id(.:format)                                news_updates#update
+PUT    /news_updates/:id(.:format)                                news_updates#update
+DELETE /news_updates/:id(.:format)                                news_updates#destroy
+GET    /news_updates/:id/edit(.:format)                           news_updates#edit
+GET    /news_updates/new(.:format)                                news_updates#new
+GET    /note(.:format)                                            redirect(301)
+GET    /note/history(.:format)                                    redirect(301)
+GET    /note/index(.:format)                                      redirect(301)
+GET    /note_previews(.:format)                                   note_previews#show
+GET    /note_versions(.:format)                                   note_versions#index
+GET    /notes(.:format)                                           notes#index
+POST   /notes(.:format)                                           notes#create
+GET    /notes/:id(.:format)                                       notes#show
+PATCH  /notes/:id(.:format)                                       notes#update
+PUT    /notes/:id(.:format)                                       notes#update
+DELETE /notes/:id(.:format)                                       notes#destroy
+GET    /notes/:id/edit(.:format)                                  notes#edit
+PUT    /notes/:id/revert(.:format)                                notes#revert
+GET    /notes/new(.:format)                                       notes#new
+GET    /notes/search(.:format)                                    notes#search
+GET    /pool(.:format)                                            redirect(301)
+GET    /pool/history/:id(.:format)                                redirect(301, /pool_versions?search[pool_id]=%{id})
+GET    /pool/index(.:format)                                      redirect(301)
+GET    /pool/recent_changes(.:format)                             redirect(301, /pool_versions)
+GET    /pool/show/:id(.:format)                                   redirect(301, /pools/%{id})
+POST   /pool_element(.:format)                                    pool_elements#create
+DELETE /pool_element(.:format)                                    pool_elements#destroy
+GET    /pool_element/all_select(.:format)                         pool_elements#all_select
+GET    /pool_versions(.:format)                                   pool_versions#index
+GET    /pools(.:format)                                           pools#index
+POST   /pools(.:format)                                           pools#create
+GET    /pools/:id(.:format)                                       pools#show
+PATCH  /pools/:id(.:format)                                       pools#update
+PUT    /pools/:id(.:format)                                       pools#update
+DELETE /pools/:id(.:format)                                       pools#destroy
+GET    /pools/:id/edit(.:format)                                  pools#edit
+PUT    /pools/:id/revert(.:format)                                pools#revert
+POST   /pools/:id/undelete(.:format)                              pools#undelete
+GET    /pools/:pool_id/order/edit(.:format)                       pool_orders#edit
+GET    /pools/gallery(.:format)                                   pools#gallery
+GET    /pools/new(.:format)                                       pools#new
+GET    /post(.:format)                                            redirect(301)
+GET    /post/atom(.:format)                                       redirect(301)
+GET    /post/atom.feed(.:format)                                  redirect(301)
+GET    /post/create.xml(.:format)                                 legacy#create_post {:format=&gt;/xml/}
+GET    /post/flag/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/index(.:format)                                      redirect(301)
+GET    /post/index.json(.:format)                                 legacy#posts {:format=&gt;/json/}
+GET    /post/index.xml(.:format)                                  legacy#posts {:format=&gt;/xml/}
+GET    /post/moderate(.:format)                                   redirect(301, /moderator/post/queue)
+GET    /post/piclens(.:format)                                    legacy#unavailable
+GET    /post/popular_by_day(.:format)                             redirect(301, /explore/posts/popular)
+GET    /post/popular_by_month(.:format)                           redirect(301, /explore/posts/popular)
+GET    /post/popular_by_week(.:format)                            redirect(301, /explore/posts/popular)
+GET    /post/show(.:format)                                       redirect(301)
+GET    /post/show/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/show/:id/:tag_title(.:format)                        redirect(301, /posts/%{id})
+GET    /post/upload(.:format)                                     redirect(301, /uploads/new)
+GET    /post/view/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/view/:id/:tag_title(.:format)                        redirect(301, /posts/%{id})
+GET    /post_appeals(.:format)                                    post_appeals#index
+POST   /post_appeals(.:format)                                    post_appeals#create
+GET    /post_appeals/:id(.:format)                                post_appeals#show
+PATCH  /post_appeals/:id(.:format)                                post_appeals#update
+PUT    /post_appeals/:id(.:format)                                post_appeals#update
+DELETE /post_appeals/:id(.:format)                                post_appeals#destroy
+GET    /post_appeals/:id/edit(.:format)                           post_appeals#edit
+GET    /post_appeals/new(.:format)                                post_appeals#new
+GET    /post_flags(.:format)                                      post_flags#index
+POST   /post_flags(.:format)                                      post_flags#create
+GET    /post_flags/:id(.:format)                                  post_flags#show
+PATCH  /post_flags/:id(.:format)                                  post_flags#update
+PUT    /post_flags/:id(.:format)                                  post_flags#update
+DELETE /post_flags/:id(.:format)                                  post_flags#destroy
+GET    /post_flags/:id/edit(.:format)                             post_flags#edit
+GET    /post_flags/new(.:format)                                  post_flags#new
+GET    /post_tag_history(.:format)                                redirect(301)
+GET    /post_tag_history/index(.:format)                          redirect(301)
+GET    /post_versions(.:format)                                   post_versions#index
+PUT    /post_versions/:id/undo(.:format)                          post_versions#undo
+GET    /post_versions/search(.:format)                            post_versions#search
+GET    /posts(.:format)                                           posts#index
+POST   /posts(.:format)                                           posts#create
+GET    /posts/:id(.:format)                                       posts#show
+PATCH  /posts/:id(.:format)                                       posts#update
+PUT    /posts/:id(.:format)                                       posts#update
+DELETE /posts/:id(.:format)                                       posts#destroy
+PUT    /posts/:id/copy_notes(.:format)                            posts#copy_notes
+GET    /posts/:id/edit(.:format)                                  posts#edit
+PUT    /posts/:id/mark_as_translated(.:format)                    posts#mark_as_translated
+PUT    /posts/:id/revert(.:format)                                posts#revert
+GET    /posts/:id/show_seq(.:format)                              posts#show_seq
+PUT    /posts/:id/unvote(.:format)                                posts#unvote
+GET    /posts/:post_id/events(.:format)                           post_events#index
+POST   /posts/:post_id/votes(.:format)                            post_votes#create
+DELETE /posts/:post_id/votes/:id(.:format)                        post_votes#destroy
+GET    /posts/home(.:format)                                      posts#home
+GET    /posts/new(.:format)                                       posts#new
+GET    /posts/random(.:format)                                    posts#random
+GET    /related_tag(.:format)                                     related_tags#show
+PATCH  /related_tag(.:format)                                     related_tags#update
+PUT    /related_tag(.:format)                                     related_tags#update
+GET    /reports/contributors(.:format)                            reports#contributors
+GET    /reports/janitor_trials(.:format)                          reports#janitor_trials
+GET    /reports/post_versions(.:format)                           reports#post_versions
+POST   /reports/post_versions_create(.:format)                    reports#post_versions_create
+GET    /reports/similar_users(.:format)                           reports#similar_users
+GET    /reports/uploads(.:format)                                 reports#uploads
+GET    /reports/user_promotions(.:format)                         reports#user_promotions
+POST   /saved_search_category_change(.:format)                    saved_search_category_changes#create
+GET    /saved_search_category_change/new(.:format)                saved_search_category_changes#new
+GET    /saved_searches(.:format)                                  saved_searches#index
+POST   /saved_searches(.:format)                                  saved_searches#create
+PATCH  /saved_searches/:id(.:format)                              saved_searches#update
+PUT    /saved_searches/:id(.:format)                              saved_searches#update
+DELETE /saved_searches/:id(.:format)                              saved_searches#destroy
+GET    /saved_searches/:id/edit(.:format)                         saved_searches#edit
+GET    /saved_searches/categories(.:format)                       saved_searches#categories
+GET    /saved_searches/new(.:format)                              saved_searches#new
+POST   /session(.:format)                                         sessions#create
+GET    /session(.:format)                                         sessions#show
+PATCH  /session(.:format)                                         sessions#update
+PUT    /session(.:format)                                         sessions#update
+DELETE /session(.:format)                                         sessions#destroy
+GET    /session/edit(.:format)                                    sessions#edit
+GET    /session/new(.:format)                                     sessions#new
+GET    /session/sign_out(.:format)                                sessions#sign_out
+GET    /source(.:format)                                          sources#show
+POST   /static/accept_terms_of_service(.:format)                  static#accept_terms_of_service
+GET    /static/benchmark(.:format)                                static#benchmark
+GET    /static/bookmarklet(.:format)                              static#bookmarklet
+GET    /static/contact(.:format)                                  static#contact
+GET    /static/keyboard_shortcuts(.:format)                       static#keyboard_shortcuts
+GET    /static/mrtg(.:format)                                     static#mrtg
+GET    /static/name_change(.:format)                              static#name_change
+GET    /static/site_map(.:format)                                 static#site_map
+GET    /static/terms_of_service(.:format)                         static#terms_of_service
+GET    /super_voters(.:format)                                    super_voters#index
+GET    /tag(.:format)                                             redirect(301)
+GET    /tag/index(.:format)                                       redirect(301)
+GET    /tag/index.json(.:format)                                  legacy#tags {:format=&gt;/json/}
+GET    /tag/index.xml(.:format)                                   legacy#tags {:format=&gt;/xml/}
+POST   /tag_alias_request(.:format)                               tag_alias_requests#create
+GET    /tag_alias_request/new(.:format)                           tag_alias_requests#new
+GET    /tag_aliases(.:format)                                     tag_aliases#index
+POST   /tag_aliases(.:format)                                     tag_aliases#create
+GET    /tag_aliases/:id(.:format)                                 tag_aliases#show
+PATCH  /tag_aliases/:id(.:format)                                 tag_aliases#update
+PUT    /tag_aliases/:id(.:format)                                 tag_aliases#update
+DELETE /tag_aliases/:id(.:format)                                 tag_aliases#destroy
+POST   /tag_aliases/:id/approve(.:format)                         tag_aliases#approve
+GET    /tag_aliases/:id/edit(.:format)                            tag_aliases#edit
+POST   /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#create
+GET    /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#show
+PATCH  /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#update
+PUT    /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#update
+DELETE /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#destroy
+GET    /tag_aliases/:tag_alias_id/correction/edit(.:format)       tag_alias_corrections#edit
+GET    /tag_aliases/:tag_alias_id/correction/new(.:format)        tag_alias_corrections#new
+GET    /tag_aliases/new(.:format)                                 tag_aliases#new
+GET    /tag_implication(.:format)                                 redirect(301)
+POST   /tag_implication_request(.:format)                         tag_implication_requests#create
+GET    /tag_implication_request/new(.:format)                     tag_implication_requests#new
+GET    /tag_implications(.:format)                                tag_implications#index
+POST   /tag_implications(.:format)                                tag_implications#create
+GET    /tag_implications/:id(.:format)                            tag_implications#show
+PATCH  /tag_implications/:id(.:format)                            tag_implications#update
+PUT    /tag_implications/:id(.:format)                            tag_implications#update
+DELETE /tag_implications/:id(.:format)                            tag_implications#destroy
+POST   /tag_implications/:id/approve(.:format)                    tag_implications#approve
+GET    /tag_implications/:id/edit(.:format)                       tag_implications#edit
+GET    /tag_implications/new(.:format)                            tag_implications#new
+GET    /tag_subscriptions(.:format)                               tag_subscriptions#index
+POST   /tag_subscriptions(.:format)                               tag_subscriptions#create
+GET    /tag_subscriptions/:id(.:format)                           tag_subscriptions#show
+PATCH  /tag_subscriptions/:id(.:format)                           tag_subscriptions#update
+PUT    /tag_subscriptions/:id(.:format)                           tag_subscriptions#update
+DELETE /tag_subscriptions/:id(.:format)                           tag_subscriptions#destroy
+GET    /tag_subscriptions/:id/edit(.:format)                      tag_subscriptions#edit
+POST   /tag_subscriptions/:id/migrate(.:format)                   tag_subscriptions#migrate
+GET    /tag_subscriptions/:id/posts(.:format)                     tag_subscriptions#posts
+GET    /tag_subscriptions/new(.:format)                           tag_subscriptions#new
+GET    /tags(.:format)                                            tags#index
+POST   /tags(.:format)                                            tags#create
+GET    /tags/:id(.:format)                                        tags#show
+PATCH  /tags/:id(.:format)                                        tags#update
+PUT    /tags/:id(.:format)                                        tags#update
+DELETE /tags/:id(.:format)                                        tags#destroy
+GET    /tags/:id/edit(.:format)                                   tags#edit
+POST   /tags/:tag_id/correction(.:format)                         tag_corrections#create
+GET    /tags/:tag_id/correction(.:format)                         tag_corrections#show
+GET    /tags/:tag_id/correction/new(.:format)                     tag_corrections#new
+GET    /tags/autocomplete(.:format)                               tags#autocomplete
+GET    /tags/new(.:format)                                        tags#new
+GET    /uploads(.:format)                                         uploads#index
+POST   /uploads(.:format)                                         uploads#create
+GET    /uploads/:id(.:format)                                     uploads#show
+PATCH  /uploads/:id(.:format)                                     uploads#update
+PUT    /uploads/:id(.:format)                                     uploads#update
+DELETE /uploads/:id(.:format)                                     uploads#destroy
+GET    /uploads/:id/edit(.:format)                                uploads#edit
+GET    /uploads/batch(.:format)                                   uploads#batch
+GET    /uploads/image_proxy(.:format)                             uploads#image_proxy
+GET    /uploads/new(.:format)                                     uploads#new
+GET    /user(.:format)                                            redirect(301)
+GET    /user/index(.:format)                                      redirect(301)
+GET    /user/index.json(.:format)                                 legacy#users {:format=&gt;/json/}
+GET    /user/index.xml(.:format)                                  legacy#users {:format=&gt;/xml/}
+GET    /user/login(.:format)                                      redirect(301, /sessions/new)
+GET    /user/show/:id(.:format)                                   redirect(301, /users/%{id})
+GET    /user_feedbacks(.:format)                                  user_feedbacks#index
+POST   /user_feedbacks(.:format)                                  user_feedbacks#create
+GET    /user_feedbacks/:id(.:format)                              user_feedbacks#show
+PATCH  /user_feedbacks/:id(.:format)                              user_feedbacks#update
+PUT    /user_feedbacks/:id(.:format)                              user_feedbacks#update
+DELETE /user_feedbacks/:id(.:format)                              user_feedbacks#destroy
+GET    /user_feedbacks/:id/edit(.:format)                         user_feedbacks#edit
+GET    /user_feedbacks/new(.:format)                              user_feedbacks#new
+GET    /user_feedbacks/search(.:format)                           user_feedbacks#search
+GET    /user_name_change_requests(.:format)                       user_name_change_requests#index
+POST   /user_name_change_requests(.:format)                       user_name_change_requests#create
+GET    /user_name_change_requests/:id(.:format)                   user_name_change_requests#show
+PATCH  /user_name_change_requests/:id(.:format)                   user_name_change_requests#update
+PUT    /user_name_change_requests/:id(.:format)                   user_name_change_requests#update
+DELETE /user_name_change_requests/:id(.:format)                   user_name_change_requests#destroy
+POST   /user_name_change_requests/:id/approve(.:format)           user_name_change_requests#approve
+GET    /user_name_change_requests/:id/edit(.:format)              user_name_change_requests#edit
+POST   /user_name_change_requests/:id/reject(.:format)            user_name_change_requests#reject
+GET    /user_name_change_requests/new(.:format)                   user_name_change_requests#new
+GET    /user_record(.:format)                                     redirect(301)
+POST   /user_revert(.:format)                                     user_reverts#create
+GET    /user_revert/new(.:format)                                 user_reverts#new
+POST   /user_upgrade(.:format)                                    user_upgrades#create
+GET    /user_upgrade(.:format)                                    user_upgrades#show
+GET    /user_upgrade/new(.:format)                                user_upgrades#new
+GET    /users(.:format)                                           users#index
+POST   /users(.:format)                                           users#create
+GET    /users/:id(.:format)                                       users#show
+PATCH  /users/:id(.:format)                                       users#update
+PUT    /users/:id(.:format)                                       users#update
+DELETE /users/:id(.:format)                                       users#destroy
+DELETE /users/:id/cache(.:format)                                 users#cache
+GET    /users/:id/edit(.:format)                                  users#edit
+GET    /users/:user_id/password/edit(.:format)                    maintenance/user/passwords#edit
+GET    /users/custom_style(.:format)                              users#custom_style
+GET    /users/new(.:format)                                       users#new
+GET    /users/search(.:format)                                    users#search
+GET    /wiki(.:format)                                            redirect(301)
+GET    /wiki/history/:title(.:format)                             redirect(301, /wiki_page_versions?title=%{title})
+GET    /wiki/index(.:format)                                      redirect(301)
+GET    /wiki/recent_changes(.:format)                             redirect(301)
+GET    /wiki/rename(.:format)                                     redirect(301, /wiki_pages)
+GET    /wiki/show(.:format)                                       redirect(301)
+GET    /wiki_page_versions(.:format)                              wiki_page_versions#index
+GET    /wiki_page_versions/:id(.:format)                          wiki_page_versions#show
+GET    /wiki_page_versions/diff(.:format)                         wiki_page_versions#diff
+GET    /wiki_pages(.:format)                                      wiki_pages#index
+POST   /wiki_pages(.:format)                                      wiki_pages#create
+GET    /wiki_pages/:id(.:format)                                  wiki_pages#show
+PATCH  /wiki_pages/:id(.:format)                                  wiki_pages#update
+PUT    /wiki_pages/:id(.:format)                                  wiki_pages#update
+DELETE /wiki_pages/:id(.:format)                                  wiki_pages#destroy
+GET    /wiki_pages/:id/edit(.:format)                             wiki_pages#edit
+PUT    /wiki_pages/:id/revert(.:format)                           wiki_pages#revert
+GET    /wiki_pages/new(.:format)                                  wiki_pages#new
+GET    /wiki_pages/search(.:format)                               wiki_pages#search
+GET    /wiki_pages/show_or_new(.:format)                          wiki_pages#show_or_new
+GET    /wpages(.:format)                                          wiki_pages#index
+POST   /wpages(.:format)                                          wiki_pages#create
+GET    /wpages/:id(.:format)                                      wiki_pages#show
+PATCH  /wpages/:id(.:format)                                      wiki_pages#update
+PUT    /wpages/:id(.:format)                                      wiki_pages#update
+DELETE /wpages/:id(.:format)                                      wiki_pages#destroy
+GET    /wpages/:id/edit(.:format)                                 wiki_pages#edit
+GET    /wpages/new(.:format)                                      wiki_pages#new
+ "></meta>
+
+  <!-- Matomo -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//matomo.donmai.us/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', '1']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+
+</head>
+<body lang="en" class="c-wiki-pages a-show" data-controller="wiki-pages" data-action="show" data-user-id="475667" data-user-name="necoma" data-user-level="30" data-user-level-string="Gold" data-user-can-approve-posts="false" data-user-can-upload-free="false" data-user-is-member="true" data-user-is-gold="true" data-user-is-platinum="false" data-user-is-builder="false" data-user-is-moderator="false" data-user-is-admin="false" data-user-is-anonymous="false" data-user-is-blocked="false" data-user-is-banned="false" data-user-is-approver="false" data-user-is-voter="true" data-user-is-super-voter="false" data-user-is-verified="true">
+  
+
+  <header id="top">
+    <h1><a href="/">Danbooru</a></h1>
+    
+    <div id="maintoggle">
+      <a href="#"><i id="maintoggle-on" class="fas fa-bars"></i></a>
+      <a href="#"><i id="maintoggle-off" class="fas fa-times" style="display: none;"></i></a>
+    </div>
+    
+    <nav id="nav">
+      <menu class="main">
+    <li id="nav-my-account"><a id="nav-my-account-link" href="/users/475667">My Account </a></li>
+  <li id="nav-posts"><a id="nav-posts-link" href="/posts">Posts</a></li>
+  <li id="nav-comments"><a id="nav-comments-link" href="/comments?group_by=post">Comments</a></li>
+  <li id="nav-notes"><a id="nav-notes-link" href="/notes">Notes</a></li>
+  <li id="nav-artists"><a id="nav-artists-link" href="/artists">Artists</a></li>
+  <li id="nav-tags"><a id="nav-tags-link" href="/tags">Tags</a></li>
+  <li id="nav-pools"><a id="nav-pools-link" href="/pools/gallery">Pools</a></li>
+  <li id="nav-wiki" class=" current"><a id="nav-wiki-link" href="/wiki_pages?title=help%3Ahome">Wiki</a></li>
+  <li id="nav-forum" class="forum-updated"><a id="nav-forum-link" href="/forum_topics">Forum</a></li>
+  <li id="nav-more"><a id="nav-more-link" href="/static/site_map">More »</a></li>
+</menu>
+
+        <menu>
+    <li><form action="/wiki_pages" accept-charset="UTF-8" method="get"><input name="utf8" type="hidden" value="&#x2713;" />
+  <input id="quick_search_title" placeholder="Search wiki pages" data-autocomplete="wiki-page" type="text" name="search[title]" />
+</form></li>
+
+    <li id="subnav-listing"><a id="subnav-listing-link" href="/wiki_pages">Listing</a></li>
+
+    <li id="subnav-search"><a id="subnav-search-link" href="/wiki_pages/search">Search</a></li>
+    
+      <li id="subnav-new"><a id="subnav-new-link" href="/wiki_pages/new">New</a></li>
+    
+    <li id="subnav-help"><a id="subnav-help-link" href="/wiki_pages?search%5Btitle%5D=help%3Awiki">Help</a></li>
+    
+      <li>|</li>
+
+      <li id="subnav-posts"><a id="subnav-posts-link" href="/posts?tags=help%3Aapi">Posts (0)</a></li>
+
+      <li id="subnav-history"><a id="subnav-history-link" href="/wiki_page_versions?search%5Bwiki_page_id%5D=43568">History</a></li>
+
+        <li id="subnav-edit"><a id="subnav-edit-link" data-shortcut="e" href="/wiki_pages/43568/edit">Edit</a></li>
+
+
+  </menu>
+
+    </nav>
+  </header>
+
+  <div id="page">
+
+
+
+
+
+
+    <div class="ui-corner-all ui-state-highlight" id="notice" style="display: none;">
+      <span>.</span>
+      <a href="#" id="close-notice-link">close</a>
+    </div>
+
+    <div id="c-wiki-pages">
+  <div id="a-show">
+    <aside id="sidebar">
+  <div id="blacklist-box" class="sidebar-blacklist">
+  <h1>Blacklisted (<a href="/wiki_pages?title=help%3Ablacklists">help</a>)</h1>
+  <ul id="blacklist-list">
+  </ul>
+  <a id="disable-all-blacklists" style="display: none;" href="#">Disable all</a>
+  <a id="re-enable-all-blacklists" style="display: none;" href="#">Re-enable all</a>
+</div>
+
+  <section>
+  <h1>Recent Changes (<a href="/wiki_pages?order=time">all</a>)</h1>
+  <ul>
+      <li class="category-0"><a href="/wiki_pages/105474">horse mask</a></li>
+      <li class="category-0"><a href="/wiki_pages/93634">year of the horse</a></li>
+      <li class="category-4"><a href="/wiki_pages/105473">murakomo (senran kagura)</a></li>
+      <li class="category-4"><a href="/wiki_pages/105472">oginome momoka</a></li>
+      <li class="category-4"><a href="/wiki_pages/90997">reggie fils-aime</a></li>
+      <li class="category-4"><a href="/wiki_pages/105471">satomi (sengoku taisen)</a></li>
+      <li class="category-4"><a href="/wiki_pages/105468">tairitsu (arcaea)</a></li>
+      <li class="category-4"><a href="/wiki_pages/105470">hikari (arcaea)</a></li>
+      <li class="category-4"><a href="/wiki_pages/105469">ayu (arcaea)</a></li>
+      <li class="category-0"><a href="/wiki_pages/105467">class representative</a></li>
+      <li class="category-1"><a href="/wiki_pages/39394">nekono rin</a></li>
+      <li class="category-0"><a href="/wiki_pages/105466">too many bandaids</a></li>
+      <li class="category-4"><a href="/wiki_pages/105465">hanano mitsu</a></li>
+      <li class="category-4"><a href="/wiki_pages/105464">yoshimochi moni</a></li>
+      <li class="category-3"><a href="/wiki_pages/105463">komari channel</a></li>
+      <li class="category-4"><a href="/wiki_pages/105462">sakura komari</a></li>
+      <li class="category-0"><a href="/wiki_pages/105461">scalding</a></li>
+      <li class="category-0"><a href="/wiki_pages/105409">trolley problem</a></li>
+      <li class="category-0"><a href="/wiki_pages/105460">jigabachi</a></li>
+      <li class="category-4"><a href="/wiki_pages/105459">artemis (olympus guardian)</a></li>
+      <li class="category-3"><a href="/wiki_pages/105458">olympus guardian</a></li>
+      <li class="category-4"><a href="/wiki_pages/100785">taihou (azur lane)</a></li>
+      <li class="category-3"><a href="/wiki_pages/11">touhou</a></li>
+      <li class="category-4"><a href="/wiki_pages/105441">blackhole-chan</a></li>
+      <li class="category-3"><a href="/wiki_pages/105457">punishing: gray raven</a></li>
+  </ul>
+</section>
+
+</aside>
+
+
+    <section id="content">
+      <h1 id="wiki-page-title">
+
+        <a class="tag-type-0" href="/posts?tags=help%3Aapi">help:api</a>
+
+
+      </h1>
+
+      <div id="wiki-page-body" class="prose">
+
+          <p>Danbooru offers a REST-like API to make scripting easy. All you need is a way to GET, POST, PUT and DELETE to URLs. Responses are given in either XML or JSON format.</p><h1>Testing</h1><p>API calls can be tested on <a class="dtext-link" href="https://testbooru.donmai.us">https://testbooru.donmai.us</a>. Scripts should be tested there before using them on the main site.</p><h1>Basics</h1><p>HTTP defines four basic request methods: GET, POST, PUT and DELETE. You'll be using these methods to interact with the Danbooru API. Most API calls that change the state of the database (like creating, updating, or deleting something) require an HTTP POST, PUT or DELETE call. API calls that only retrieve data can typically be done with an HTTP GET call.</p><p>A URL is considered a resource and the HTTP methods are actions you perform on the resource. For example, GET <a class="dtext-link" href="/posts/1.json">/posts/1.json</a> returns a JSON representation of a post. GET <a class="dtext-link" href="/posts/1.xml">/posts/1.xml</a> returns an XML representation. POST /posts/1.json would update the resource, for example changing its tags.</p><p>Some resources require parameters. For example, you can find tags that start with the letter 'a' by calling GET <a class="dtext-link" href="/tags.json?search[name_matches]=a*">/tags.json?search[name_matches]=a*</a>. This will give you a JSON listing of all tags with names starting with an a.</p><p>For POST, PUT and DELETE requests you must pass these parameters along in the body instead of the query parameters. Body parameters may be encoded in one of two ways. The usual way is with key-values pairs using &quot;Content-Type: application/x-www-form-urlencoded&quot;:</p><pre>curl -u &quot;$login:$api_key&quot; -X PUT &quot;https://testbooru.donmai.us/posts/2.json&quot; -d 'post[rating]=s&amp;post[tag_string]=danboo'
+</pre><p>Parameters may also be encoded as JSON using &quot;Content-Type: application/json&quot;:</p><pre>curl -u &quot;$login:$api_key&quot; -X PUT &quot;https://testbooru.donmai.us/posts/2.json&quot; -d '{ &quot;post&quot;: { &quot;rating&quot;: &quot;s&quot;, &quot;tag_string&quot;: &quot;danboo&quot; } }' -H &quot;Content-Type: application/json&quot; 
+</pre><h1>Responses</h1><p>All API calls that change state will return a single element response (for XML calls). They are formatted like this:</p><pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;response success=&quot;false&quot; reason=&quot;duplicate&quot;/&gt;
+</pre><p>For JSON responses, they'll look like this:</p><pre>{ &quot;success&quot;: false, &quot;reason&quot;: &quot;duplicate&quot; }
+</pre><p>While you can usually determine success or failure based on the response object, you can also figure out what happened based on the HTTP status code. In addition to the standard ones, Danbooru uses some custom status codes in the 4xx and 5xx range.</p><ul><li><strong>200 OK</strong>: Request was successful</li><li><strong>204 No Content</strong>: Request was successful (returned by create actions)</li><li><strong>400 Bad Request</strong>: The given parameters could not be parsed</li><li><strong>401 Unauthorized</strong>: Authentication failed</li><li><strong>403 Forbidden</strong>: Access denied (see <a class="dtext-link dtext-wiki-link" href="/wiki_pages/show_or_new?title=help%3Ausers">help:users</a> for permissions information)</li><li><strong>404 Not Found</strong>: Not found</li><li><strong>410 Gone</strong>: Pagination limit (see <a class="dtext-link dtext-wiki-link" href="/wiki_pages/show_or_new?title=help%3Ausers">help:users</a> for pagination limits)</li><li><strong>420 Invalid Record</strong>: Record could not be saved</li><li><strong>422 Locked</strong>: The resource is locked and cannot be modified</li><li><strong>423 Already Exists</strong>: Resource already exists</li><li><strong>424 Invalid Parameters</strong>: The given parameters were invalid</li><li><strong>429 User Throttled</strong>: User is throttled, try again later (see <a class="dtext-link dtext-wiki-link" href="/wiki_pages/show_or_new?title=help%3Ausers">help:users</a> for API limits)</li><li><strong>500 Internal Server Error</strong>: A database timeout, or some unknown error occurred on the server</li><li><strong>502 Bad Gateway</strong>: Server cannot currently handle the request, try again later (returned during heavy load)</li><li><strong>503 Service Unavailable</strong>: Server cannot currently handle the request, try again later (returned during downbooru)</li></ul><h1>Authentication</h1><p>If you can't maintain a session via a cookie, you can pass in two parameters to authenticate: &quot;login&quot; and &quot;api_key&quot;. You can discover your API key by visiting your user profile. For legacy users, &quot;password_hash&quot; using the old salted SHA1 hashed password is also supported.</p><p>You can also authenticate via HTTP Basic Authentication using your user name and API key.</p><p>⚠️ Your password hash and API key are personal and must be kept secret. Gaining access to either one allows full access to your account. Do not publicly post your API key or distribute it in scripts.</p><p>If you are writing a user script for a browser, you do not need to embed an API key. You can rely on the user's session.</p><h1>Rate Limits</h1><p>As per <a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/13628">topic #13628</a>, API reads are not limited, but most kinds of update actions are rate-limited according to user level:</p><ul><li>Basic users: 1 update/second</li><li>Gold users w/API key: 2 updates/second</li><li>Platinum/Builder/Mod w/API key: 4 updates/second</li></ul><p>In addition, users have a burst pool where they can make several consecutive updates before being rate limited. This is again dependent on user level:</p><ul><li>Basic users: 10 updates at once</li><li>Gold users w/API key: 30 updates at once</li><li>Platinum/Builder/Mod w/API key: 60 updates at once</li></ul><p>This pool is regenerated according to the rate limiting rules mentioned above.</p><h1>Queries</h1><h4>Common Search Parameters</h4><p>All search endpoints support a common set of parameters:</p><ul><li><strong>page</strong> Returns the given page. Subject to maximum page limits (see <a class="dtext-link dtext-wiki-link" href="/wiki_pages/show_or_new?title=help%3Ausers">help:users</a>).<br>              You can also use <code>b&lt;id&gt;</code> and <code>a&lt;id&gt;</code> to request results before &lt;id&gt; or after &lt;id&gt;, respectively.<br>              E.g. to get a page of posts before <a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/999999">post #999999</a>, you'd make a request to <code>/posts.json?page=b999999</code>.</li><li><strong>limit</strong> The number of results to return per page. The maximum limit is 200 for /posts.json and 1000 for everything else.</li><li><strong>search[id]</strong></li><li><strong>search[created_at]</strong></li><li><strong>search[updated_at]</strong></li><li><strong>search[order]=custom</strong> Returns results in the same order as given by <code>search[id]=3,2,1</code>.</li></ul><h5>Parameter Parsing</h5><p>Numeric search parameters support ranges:</p><ul><li><code>100</code></li><li><code>&gt;100</code></li><li><code>&gt;=100</code></li><li><code>&lt;100</code></li><li><code>&lt;=100</code></li><li><code>100,200,300</code></li><li><code>100..200</code> (inclusive)</li></ul><p>Date parameters also support ranges:</p><ul><li><code>2012-01-01</code></li><li><code>&gt;2012-01-01</code></li><li><code>&gt;=2012-01-01</code></li><li><code>&lt;2012-01-01</code></li><li><code>&lt;=2012-01-01</code></li><li><code>2012-01-01,2012-01-02</code></li><li><code>2012-01-01..2013-01-01</code> (inclusive)</li></ul><p>Boolean parameters accept any of the following values for true or false:</p><ul><li>True: true, t, yes, y, on, 1</li><li>False: false, f, no, n, off, 0</li></ul><p>Most string parameters support using asterisks (*) as wildcards. Wildcards can be escaped with <code>\*</code>. Literal backslashes can be escaped with <code>\\</code>. </p><h1>Versioned Types</h1><div class="expandable"><div class="expandable-header"><span>Artists</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /artists.json.</p><ul><li><strong>search[id]</strong> The artist id.</li><li><strong>search[name]</strong> Search for artists with an exact match for this name.</li><li><strong>search[group_name]</strong> Search for artists with an exact match for this group name.</li><li><strong>search[any_other_name_like]</strong> Search for artists that have an other name matching this value. Supports wildcards.</li><li><strong>search[any_name_matches]</strong> Search for artists that have a matching name, group name, or other name. Supports wildcards and regexes.</li><li><strong>search[url_matches]</strong> Search for artists with a matching URL:</li><ul><li><code>*pixiv*</code> Search for URLs matching a wildcard expression.</li><li><code>/pixiv|twitter/</code> Search for URLs matching a regular expression.</li><li><code><a class="dtext-link" href="https://www.pixiv.net/member.php?id=9948">https://www.pixiv.net/member.php?id=9948</a> </code> Search for artists with the given profile URL.</li><li><code><a class="dtext-link" href="https://www.pixiv.net/member_illust.php?mode=medium&amp;illust_id=615946">https://www.pixiv.net/member_illust.php?mode=medium&amp;illust_id=615946</a> </code> Search for artists given a link to one of their works.</li></ul><li><strong>search[creator_name]</strong></li><li><strong>search[creator_id]</strong></li><li><strong>search[is_active]</strong> Search for artists that are active (not deleted).</li><li><strong>search[is_banned]</strong> Search for artists that are banned.</li><li><strong>search[has_tag]</strong> Search for artists that have a non-empty tag.</li><li><strong>search[order]</strong> Can be: name, updated_at, post_count (Defaults to ID).</li></ul><h3>Show</h3><p>The base URL is GET /artists/$id.json where $id is the artist id.</p><h3>Create</h3><p>The base URL is POST /artists.json.</p><ul><li><strong>artist[name]</strong> The artist tag name.</li><li><strong>artist[other_names]</strong> List of alternative names for this artist, space delimited. Replace spaces within names with underscores.</li><li><strong>artist[group_name]</strong> The name of the group this artist belongs to.</li><li><strong>artist[url_string]</strong> List of URLs associated with this artist, whitespace or newline delimited.</li><li><strong>artist[notes]</strong> DText that will be used to create a wiki entry at the same time.</li><li><strong>artist[is_active]</strong> False to mark the artist entry as deleted. True to undelete the artist entry. Builder only.</li></ul><h3>Update</h3><p>The base URL is PUT /artists/$id.json where $id is the artist id.</p><p>Accepts the same parameters as the create artist action.</p><h3>Delete (Builder+)</h3><p>The base URL is DELETE /artists/$id.json where $id is the artist id.</p><h3>Undelete (Builder+)</h3><p>The base URL is POST /artists/$id/undelete.json where $id is the artist id.</p><h3>Banned</h3><p>The base URL is GET /artists/banned.json. This is a shortcut for an artist listing search with is_banned=true.</p><h3>Revert</h3><p>The base URL is PUT /artists/$id/revert.json where $id is the artist id.</p><ul><li><strong>version_id</strong> REQUIRED The artist version id to revert to.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Artist Commentary</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /artist_commentaries.json.</p><ul><li><strong>search[text_matches]</strong></li><li><strong>search[post_id]</strong></li><li><strong>search[post_tags_match]</strong> The commentary's post's tags match the given terms. Meta-tags not supported.</li><li><strong>search[original_present]</strong> Can be: yes, no</li><li><strong>search[translated_present]</strong> Can be: yes, no</li></ul><h3>Create or Update</h3><p>The base URL is PUT /artist_commentaries/create_or_update.json</p><ul><li><strong>artist_commentary[post_id]</strong> REQUIRED</li><li><strong>artist_commentary[original_title]</strong></li><li><strong>artist_commentary[original_description]</strong></li><li><strong>artist_commentary[translated_title]</strong></li><li><strong>artist_commentary[translated_description]</strong></li></ul><ul><li><strong>artist_commentary[add_commentary_tag]</strong></li><li><strong>artist_commentary[add_commentary_request_tag]</strong></li><li><strong>artist_commentary[add_commentary_check_tag]</strong></li><li><strong>artist_commentary[add_partial_commentary_tag]</strong></li></ul><ul><li><strong>artist_commentary[remove_commentary_tag]</strong></li><li><strong>artist_commentary[remove_commentary_request_tag]</strong></li><li><strong>artist_commentary[remove_commentary_check_tag]</strong></li><li><strong>artist_commentary[remove_partial_commentary_tag]</strong></li></ul><h3>Revert</h3><p>The base URL is PUT /artist_commentaries/$id/revert.json where $id is the post id (not the artist commentary id).</p><ul><li><strong>version_id</strong> REQUIRED The artist commentary version id to revert to.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Notes</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /notes.json.</p><ul><li><strong>search[body_matches]</strong> The note's body matches the given terms. Use a * in the search terms to search for raw strings.</li><li><strong>search[post_id]</strong></li><li><strong>search[post_tags_match]</strong> The note's post's tags match the given terms. Meta-tags are not supported.</li><li><strong>search[creator_name]</strong> The creator's name. Exact match.</li><li><strong>search[creator_id]</strong> The creator's user id.</li><li><strong>search[is_active]</strong> Can be: true, false</li></ul><p>Use /notes.json?group_by=note&amp;search[post_id]=$id to get notes from $id.</p><h3>Show</h3><p>The base URL is GET /notes/$id.json where $id is the note id.</p><h3>Create</h3><ul><li><strong>note[post_id]</strong> REQUIRED</li><li><strong>note[x]</strong> REQUIRED The x coordinates of the note in pixels, with respect to the top-left corner of the image.</li><li><strong>note[y]</strong> REQUIRED The y coordinates of the note in pixels, with respect to the top-left corner of the image.</li><li><strong>note[width]</strong> REQUIRED The width of the note in pixels.</li><li><strong>note[height]</strong> REQUIRED The height of the note in pixels.</li><li><strong>note[body]</strong> REQUIRED The body of the note.</li></ul><h3>Update</h3><p>The base URL is PUT /notes/$id.json where $id is the note id.</p><ul><li><strong>note[x]</strong> The x coordinates of the note in pixels, with respect to the top-left corner of the image.</li><li><strong>note[y]</strong> The y coordinates of the note in pixels, with respect to the top-left corner of the image.</li><li><strong>note[width]</strong> The width of the note in pixels.</li><li><strong>note[height]</strong> The height of the note in pixels.</li><li><strong>note[body]</strong> The body of the note.</li></ul><h3>Delete</h3><p>The base URL is DELETE /notes/$id.json where $id is the note id.</p><h3>Revert</h3><p>The base URL is PUT /notes/$id/revert.json where $id is the note id.</p><ul><li><strong>version_id</strong> REQUIRED The note version id to revert to.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Pools</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /pools.json.</p><ul><li><strong>search[name_matches]</strong> Supports patterns.</li><li><strong>search[id]</strong> Can search for multiple ID's at once, separated by commas.</li><li><strong>search[description_matches]</strong></li><li><strong>search[creator_name]</strong></li><li><strong>search[creator_id]</strong></li><li><strong>search[is_active]</strong> Can be: true, false</li><li><strong>search[is_deleted]</strong> Can be: true, false</li><li><strong>search[category]</strong> Can be: series, collection</li><li><strong>search[order]</strong> Can be: name, created_at, post_count, date (Defaults to updated at)</li></ul><h3>Show</h3><p>The base URL is GET /pools/$id.json where $id is the pool id.</p><h3>Create</h3><p>The base URL is POST /pools.json.</p><ul><li><strong>pool[name]</strong> REQUIRED</li><li><strong>pool[description]</strong> REQUIRED</li><li><strong>pool[category]</strong> Can be: series, collection</li></ul><h3>Update</h3><p>The base URL is PUT /pools/$id.json where $id is the pool id.</p><ul><li><strong>pool[name]</strong></li><li><strong>pool[description]</strong></li><li><strong>pool[post_ids]</strong> List of space delimited post ids.</li><li><strong>pool[is_active]</strong> Can be: 1, 0</li><li><strong>pool[category]</strong> Can be: series, collection</li></ul><h3>Delete (Moderator+)</h3><p>The base URL is DELETE /pools/$id.json where $id is the pool id.</p><h3>Undelete (Moderator+)</h3><p>The base URL is POST /pools/$id/undelete.json where $id is the pool id.</p><h3>Revert</h3><p>The base URL is PUT /pools/$id/revert.json where $id is the pool id.</p><ul><li><strong>version_id</strong> REQUIRED<br></li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Posts</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /posts.json.</p><ul><li><strong>limit</strong> How many posts you want to retrieve.</li><li><strong>page</strong> The page number.</li><li><strong>tags</strong> The tags to search for. Any tag combination that works on the web site will work here. This includes all the meta-tags.</li><li><strong>md5</strong> The md5 of the image to search for.</li><li><strong>random</strong> Can be: true, false</li><li><strong>raw</strong> When this parameter is set the tags parameter will not be parsed for aliased tags, metatags or multiple tags, and will instead be parsed as a single literal tag.</li></ul><h3>Show</h3><p>The base URL is GET /posts/$id.json where $id is the post id.</p><h3>Create</h3><p>You cannot directly create posts. You must create an upload, which is then converted into a post.</p><h3>Update</h3><p>The base URL is PUT /posts/$id.json where $id is the post id.</p><ul><li><strong>Member+</strong></li><ul><li><strong>post[tag_string]</strong> A space delimited list of tags.</li><li><strong>post[rating]</strong> The rating for the post. Can be: safe, questionable, or explicit.</li><li><strong>post[source]</strong> If this is a URL, Danbooru will download the file.</li><li><strong>post[parent_id]</strong> The ID of the parent post.</li><li><strong>post[has_embedded_notes]</strong> Can be: 0, 1</li></ul><li><strong>Builder+</strong></li><ul><li><strong>post[is_rating_locked]</strong> Can be: 0, 1</li><li><strong>post[is_note_locked]</strong> Can be: 0, 1</li></ul><li><strong>Admin</strong></li><ul><li><strong>post[is_status_locked]</strong> Can be: 0, 1</li></ul></ul><h3>Delete</h3><p>You cannot delete posts. You can only flag them for deletion (see PostFlag resource).</p><h3>Revert</h3><p>The base URL is PUT /posts/$id/revert.json where $id is the post id.</p><ul><li><strong>version_id</strong> REQUIRED The post version id to revert to.</li></ul><h3>Copy notes</h3><p>The base URL is PUT /posts/$id/copy_notes.json where $id is the post id.</p><ul><li><strong>other_post_id</strong> REQUIRED The id of the post to copy notes to.</li></ul><h3>Mark as translated</h3><p>The base URL is PUT /posts/$id/mark_as_translated.json where $id is the post id.</p><ul><li><strong>post[check_translation]</strong></li><li><strong>post[partially_translated]</strong></li></ul><h3>Vote</h3><p>The base URL is POST /posts/$post_id/votes.json where $post_id is the post id.</p><ul><li><strong>score</strong> REQUIRED Can be: up, down.</li></ul><h3>Unvote</h3><p>The base URL is DELETE /posts/$post_id/votes.json where $post_id is the post id.</p></div></div><div class="expandable"><div class="expandable-header"><span>Wiki Pages</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /wiki_pages.json.</p><ul><li><strong>search[title]</strong></li><li><strong>search[creator_id]</strong></li><li><strong>search[body_matches]</strong></li><li><strong>search[other_names_match]</strong></li><li><strong>search[creator_name]</strong></li><li><strong>search[hide_deleted]</strong> Can be: y</li><li><strong>search[other_names_present]</strong> Can be: yes, no</li><li><strong>search[order]</strong> Can be: date (or time), title (or name).</li></ul><h3>Show</h3><p>The base URL is GET /wiki_pages/$id.json where $id is the wiki page id.</p><h3>Create</h3><p>The base URL is POST /wiki_pages.json.</p><ul><li><strong>wiki_page[title]</strong> REQUIRED</li><li><strong>wiki_page[body]</strong> REQUIRED</li><li><strong>wiki_page[other_names]</strong></li></ul><h3>Update</h3><p>The base URL is PUT /wiki_pages/$id.json where $id is the wiki page id.</p><ul><li><strong>wiki_page[title]</strong></li><li><strong>wiki_page[body]</strong></li><li><strong>wiki_page[other_names]</strong></li><li><strong>wiki_page[is_locked]</strong> Can be: 0,1 (Builder+)</li><li><strong>wiki_page[is_deleted]</strong> Can be: 0,1 (Builder+)</li></ul><h3>Delete (Builder+)</h3><p>The base URL is DELETE /wiki_pages/$id.json where $id is the pool id.</p><h3>Revert</h3><p>The base URL is PUT /wiki_pages/$id/revert.json where $id is the wiki page id.</p><ul><li><strong>version_id</strong> REQUIRED</li></ul></div></div><h2>Type Versions</h2><div class="expandable"><div class="expandable-header"><span>Artist Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /artist_versions.json.</p><ul><li><strong>search[name]</strong></li><li><strong>search[updater_name]</strong></li><li><strong>search[updater_id]</strong></li><li><strong>search[artist_id]</strong></li><li><strong>search[is_active]</strong> Can be: true, false</li><li><strong>search[is_banned]</strong> Can be: true, false</li><li><strong>search[order]</strong> Can be: name (Defaults to ID)</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Artist Commentary Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /artist_commentary_versions.json.</p><ul><li><strong>search[updater_id]</strong></li><li><strong>search[post_id]</strong></li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Note Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /note_versions.json.</p><ul><li><strong>search[updater_id]</strong></li><li><strong>search[post_id]</strong></li><li><strong>search[note_id]</strong></li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Pool Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /pool_versions.json.</p><ul><li><strong>search[updater_id]</strong></li><li><strong>search[updater_name]</strong></li><li><strong>search[pool_id]</strong></li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Post Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /post_versions.json.</p><ul><li><strong>search[updater_name]</strong></li><li><strong>search[updater_id]</strong></li><li><strong>search[post_id]</strong></li><li><strong>search[start_id]</strong></li></ul><h3>Show</h3><p>The base URL is GET /post_versions/$id.json where $id is the post version id.</p><h3>Undo</h3><p>The base URL is PUT /post_versions/$id/undo.json where $id is the post version id.</p></div></div><div class="expandable"><div class="expandable-header"><span>Wiki Page Versions</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /wiki_page_versions.json.</p><ul><li><strong>search[updater_id]</strong></li><li><strong>search[wiki_page_id]</strong></li></ul><h3>Show</h3><p>The base URL is GET /wiki_page_versions/$id.json where $id is the wiki page version id.</p></div></div><h2>Non-versioned Types</h2><div class="expandable"><div class="expandable-header"><span>Comments</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /comments.json.</p><ul><li><strong>limit</strong> How many posts you want to retrieve.</li><li><strong>page</strong> The page number.</li><li><strong>group_by</strong> Must be: comment, else it will return posts.</li><li><strong>search[body_matches]</strong> Body contains the given terms.</li><li><strong>search[post_id]</strong></li><li><strong>search[post_tags_match]</strong> The comment's post's tags match the given terms. Meta-tags not supported.</li><li><strong>search[creator_name]</strong> The name of the creator (exact match)</li><li><strong>search[creator_id]</strong> The user id of the creator</li><li><strong>search[is_deleted]</strong> Can be: true,false</li></ul><h3>Create</h3><p>The base URL is POST /comments.json</p><ul><li><strong>comment[post_id]</strong> REQUIRED</li><li><strong>comment[body]</strong> REQUIRED</li><li><strong>comment[do_not_bump_post]</strong> Set to 1 if you do not want the post to be bumped to the top of the comment listing</li></ul><h3>Update</h3><p>The base URL is PUT /comments/$id.json where $id is the comment id.</p><ul><li><strong>comment[body]</strong> REQUIRED</li></ul><h3>Show</h3><p>The base URL is GET /comments/$id.json where $id is the comment id.</p><h3>Delete</h3><p>The base URL is DELETE /comments/$id.json where $id is the comment id.</p><h3>Undelete</h3><p>The base URL is POST /comments/$id/undelete.json where $id is the comment id.</p><h3>Vote</h3><p>The base URL is POST /comments/$id/votes.json where $id is the comment id.</p><ul><li><strong>score</strong> REQUIRED Can be: up, down.</li></ul><h3>Unvote</h3><p>The base URL is POST /posts/$id/unvote.json where $id is the comment id.</p></div></div><div class="expandable"><div class="expandable-header"><span>Dmails</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /dmails.json. You can only view dmails you own.</p><ul><li><strong>search[message_matches]</strong> The message body contains the given terms.</li><li><strong>search[to_name]</strong> The recipient's name.</li><li><strong>search[to_id]</strong> The recipient's user id.</li><li><strong>search[from_name]</strong> The sender's name.</li><li><strong>search[from_id]</strong> The sender's user id.</li><li><strong>search[read]</strong> Can be: true, false</li></ul><h3>Show</h3><p>The base URL is GET /dmails/$id.json where $id is the dmail id. You can only view dmails you own.</p><h3>Create</h3><p>The base URL is POST /dmails.json.</p><ul><li><strong>dmail[to_name]</strong> The recipient's name.</li><li><strong>dmail[title]</strong> The title of the message.</li><li><strong>dmail[body]</strong> The body of the message.</li></ul><h3>Delete</h3><p>The base URL is DELETE /dmails/$id.json where $id is the dmail id. You can only delete dmails you own.</p></div></div><div class="expandable"><div class="expandable-header"><span>Forum Posts</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /forum_posts.json.</p><ul><li><strong>search[creator_id]</strong></li><li><strong>search[creator_name]</strong></li><li><strong>search[topic_id]</strong></li><li><strong>search[topic_title_matches]</strong></li><li><strong>search[topic_category_id]</strong> Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively)</li><li><strong>search[body_matches]</strong></li></ul><h3>Create</h3><p>The base URL is POST /forum_posts.json.</p><p><strong>forum_post[topic_id]</strong><br><strong>forum_post[body]</strong></p><h3>Update (Moderator+)</h3><p>The base URL is PUT /forum_posts/$id.json where $id is the forum post id.</p><ul><li><strong>forum_post[body]</strong></li></ul><h3>Delete (Moderator+)</h3><p>The base URL is DELETE /forum_posts/$id.json where $id is the forum post id.</p><h3>Undelete (Moderator+)</h3><p>The base URL is POST /forum_posts/$id/undelete.json where $id is the forum post id.</p></div></div><div class="expandable"><div class="expandable-header"><span>Forum Topics</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /forum_topics.json.</p><ul><li><strong>search[title_matches]</strong> Search body for the given terms.</li><li><strong>search[title]</strong> Exact title match.</li><li><strong>search[category_id]</strong> Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively)</li></ul><h3>Show</h3><p>The base URL is GET /forum_topics/$id.json where $id is the forum topic id.</p><h3>Create</h3><p>The base URL is POST /forum_topics.json.</p><ul><li><strong>forum_topic[title]</strong></li><li><strong>forum_topic[original_post_attributes][body]</strong> Message of the initial post.</li><li><strong>forum_topic[category_id]</strong> Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively)</li></ul><h3>Update</h3><p>The base URL is PUT /forum_topics/$id.json where $id is the forum topic id.</p><ul><li><strong>forum_topic[title]</strong></li><li><strong>forum_topic[category_id]</strong> Can be: 0, 1, 2 (General, Tags, Bugs &amp; Features respectively)</li></ul><h3>Delete (Moderator+)</h3><p>The base URL is DELETE /forum_topics/$id.json where $id is the forum topic id.</p><h3>Undelete (Moderator+)</h3><p>The base URL is POST /forum_topics/$id/undelete.json where $id is the forum topic id.</p></div></div><div class="expandable"><div class="expandable-header"><span>Post Flags</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /post_flags.json.</p><ul><li><strong>search[creator_id]</strong> The user id of the flag's creator.</li><li><strong>search[creator_name]</strong> The name of the flag's creator.</li><li><strong>search[post_id]</strong> The post id if the flag.</li></ul><h3>Show</h3><p>The base URL is GET /post_flags/$post_flag_id.json where $post_flag_id is the post flag id.</p><h3>Create</h3><p>The base URL is POST /post_flags.json.</p><ul><li><strong>post_flag[post_id]</strong> REQUIRED The id of the flagged post.</li><li><strong>post_flag[reason]</strong> REQUIRED The reason of the flagging.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Post Appeals</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /post_appeals.json.</p><ul><li><strong>search[creator_id]</strong> The user id of the appeal's creator.</li><li><strong>search[creator_name]</strong> The name of the appeal's creator.</li><li><strong>search[post_id]</strong> The post id if the appeal.</li></ul><h3>Show</h3><p>The base URL is GET /post_appeals/$post_appeal_id.json where $post_appeal_id is the post appeal id.</p><h3>Create</h3><p>The base URL is POST /post_appeals.json.</p><ul><li><strong>post_appeal[post_id]</strong> REQUIRED The id of the appealed post.</li><li><strong>post_appeal[reason]</strong> REQUIRED The reason of the appeal.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Tags</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /tags.json.</p><ul><li><strong>search[name_matches]</strong> Supports patterns.</li><li><strong>search[name]</strong> Allows searching for multiple tags with exact given names, separated by commas. e.g. search[name]=touhou,original,k-on! would return the three listed tags.</li><li><strong>search[category]</strong> Can be: 0, 1, 3, 4 (general, artist, copyright, character respectively)</li><li><strong>search[hide_empty]</strong> Can be: yes, no. Excludes tags with 0 posts when &quot;yes&quot;.</li><li><strong>search[has_wiki]</strong> Can be: yes, no</li><li><strong>search[has_artist]</strong> Can be: yes, no</li><li><strong>search[order]</strong> Can be: name, date, count (Default is date)</li></ul><h3>Show</h3><p>The base URL is GET /pools/$id.json where $id is the pool id.</p><h3>Update</h3><p>The base URL is PUT /pools/$id.json where $id is the pool id.</p><ul><li><strong>pool[category]</strong> Can be: 0, 1, 3, 4 (general, artist, copyright, character respectively)<br></li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Tag Aliases</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /tag_aliases.json.</p><ul><li><strong>search[name_matches]</strong> Match antecedent or consequent name.</li><li><strong>search[antecedent_name]</strong> Match antecedent name (exact match).</li><li><strong>search[id]</strong> The tag alias id.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Tag Implications</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /tag_implications.json.</p><ul><li><strong>search[name_matches]</strong> Match antecedent or consequent name.</li><li><strong>search[antecedent_name]</strong> Match antecedent name (exact match).</li><li><strong>search[id]</strong> The tag implication id.</li></ul></div></div><div class="expandable"><div class="expandable-header"><span>Uploads</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Listing</h3><p>The base URL is GET /uploads.json.</p><ul><li><strong>search[uploader_id]</strong> The id of the uploader.</li><li><strong>search[uploader_name]</strong> The name of the uploader.</li><li><strong>search[source]</strong> The source of the upload (exact string match).</li></ul><h3>Show</h3><p>The base URL is GET /uploads/$id.json where $id is the upload id.</p><h3>Create</h3><p>The base URL is POST /uploads.json.</p><ul><li><strong>upload[file]</strong> The file data encoded as a multipart form.</li><li><strong>upload[source]</strong> The source URL.</li><li><strong>upload[rating]</strong> REQUIRED Can be: <code>s</code>, <code>q</code>, or <code>e</code>. Alternatively, you can specify <code>rating:safe</code>, <code>rating:questionable</code>, or <code>rating:explicit</code> in the tag string.</li><li><strong>upload[parent_id]</strong> The parent post id.</li><li><strong>upload[tag_string]</strong> REQUIRED The tags.</li></ul><p>Either the file or the source must be provided.</p></div></div><div class="expandable"><div class="expandable-header"><span>Users</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Levels</h3><p>Users have a number attribute called level representing their role. The current levels are:</p><ul><li>Member: 20</li><li>Gold: 30</li><li>Platinum: 31</li><li>Builder: 32</li><li>Janitor: 35</li><li>Moderator: 40</li><li>Admin: 50</li></ul><h3>Listing</h3><p>The base URL is GET /users.json.</p><ul><li><strong>search[name]</strong> Supports patterns.</li><li><strong>search[name_matches]</strong> Same functionality as name.</li><li><strong>search[min_level]</strong> Minimum level (see section on levels).</li><li><strong>search[max_level]</strong> Maximum level (see section on levels).</li><li><strong>search[level]</strong> Current level (see section on levels).</li><li><strong>search[id]</strong> The user id.</li><li><strong>search[order]</strong> Can be: name, post_upload_count, note_count, post_update_count, date.</li></ul><h3>Show</h3><p>The base URL is GET /users/$id.json where $id is the user id.</p></div></div><h2>Other Functions</h2><div class="expandable"><div class="expandable-header"><span>Related Tags</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><h3>Show</h3><p>The base URL is GET /related_tag.json.</p><ul><li><strong>query</strong> REQUIRED The tag to find the related tags for.</li><li><strong>category</strong> If specified, show only tags of a specific category. Can be: general, artist, copyright, character</li></ul></div></div><h1>List of API endpoints</h1><div class="expandable"><div class="expandable-header"><span>API Endpoints</span><input type="button" value="Show" class="expandable-button"/></div><div class="expandable-content"><pre>GET    /                                                          posts#index
+POST   /admin/alias_and_implication_import(.:format)              admin/alias_and_implication_imports#create
+GET    /admin/alias_and_implication_import/new(.:format)          admin/alias_and_implication_imports#new
+GET    /admin/dashboard(.:format)                                 admin/dashboards#show
+PATCH  /admin/users/:id(.:format)                                 admin/users#update
+PUT    /admin/users/:id(.:format)                                 admin/users#update
+GET    /admin/users/:id/edit(.:format)                            admin/users#edit
+GET    /advertisements(.:format)                                  advertisements#index
+POST   /advertisements(.:format)                                  advertisements#create
+POST   /advertisements/:advertisement_id/hits(.:format)           advertisement_hits#create
+GET    /advertisements/:id(.:format)                              advertisements#show
+PATCH  /advertisements/:id(.:format)                              advertisements#update
+PUT    /advertisements/:id(.:format)                              advertisements#update
+DELETE /advertisements/:id(.:format)                              advertisements#destroy
+GET    /advertisements/:id/edit(.:format)                         advertisements#edit
+GET    /advertisements/new(.:format)                              advertisements#new
+POST   /api_keys(.:format)                                        api_keys#create
+GET    /api_keys/new(.:format)                                    api_keys#new
+GET    /artist(.:format)                                          redirect(301)
+GET    /artist/history/:id(.:format)                              redirect(301, /artist_versions?search[artist_id]=%{id})
+GET    /artist/index(.:format)                                    redirect(301)
+GET    /artist/index.json(.:format)                               legacy#artists {:format=&gt;/json/}
+GET    /artist/index.xml(.:format)                                legacy#artists {:format=&gt;/xml/}
+GET    /artist/recent_changes(.:format)                           redirect(301, /artist_versions)
+GET    /artist/show(.:format)                                     redirect(301)
+GET    /artist/show/:id(.:format)                                 redirect(301, /artists/%{id})
+GET    /artist_commentaries(.:format)                             artist_commentaries#index
+POST   /artist_commentaries(.:format)                             artist_commentaries#create
+GET    /artist_commentaries/:id(.:format)                         artist_commentaries#show
+PATCH  /artist_commentaries/:id(.:format)                         artist_commentaries#update
+PUT    /artist_commentaries/:id(.:format)                         artist_commentaries#update
+DELETE /artist_commentaries/:id(.:format)                         artist_commentaries#destroy
+GET    /artist_commentaries/:id/edit(.:format)                    artist_commentaries#edit
+PUT    /artist_commentaries/:id/revert(.:format)                  artist_commentaries#revert
+PUT    /artist_commentaries/create_or_update(.:format)            artist_commentaries#create_or_update
+GET    /artist_commentaries/new(.:format)                         artist_commentaries#new
+GET    /artist_commentaries/search(.:format)                      artist_commentaries#search
+GET    /artist_commentary_versions(.:format)                      artist_commentary_versions#index
+GET    /artist_versions(.:format)                                 artist_versions#index
+GET    /artist_versions/search(.:format)                          artist_versions#search
+GET    /artists(.:format)                                         artists#index
+POST   /artists(.:format)                                         artists#create
+GET    /artists/:id(.:format)                                     artists#show
+PATCH  /artists/:id(.:format)                                     artists#update
+PUT    /artists/:id(.:format)                                     artists#update
+DELETE /artists/:id(.:format)                                     artists#destroy
+PUT    /artists/:id/ban(.:format)                                 artists#ban
+GET    /artists/:id/edit(.:format)                                artists#edit
+PUT    /artists/:id/revert(.:format)                              artists#revert
+PUT    /artists/:id/unban(.:format)                               artists#unban
+POST   /artists/:id/undelete(.:format)                            artists#undelete
+GET    /artists/banned(.:format)                                  artists#banned
+GET    /artists/finder(.:format)                                  artists#finder
+GET    /artists/new(.:format)                                     artists#new
+GET    /artists/show_or_new(.:format)                             artists#show_or_new
+GET    /bans(.:format)                                            bans#index
+POST   /bans(.:format)                                            bans#create
+GET    /bans/:id(.:format)                                        bans#show
+PATCH  /bans/:id(.:format)                                        bans#update
+PUT    /bans/:id(.:format)                                        bans#update
+DELETE /bans/:id(.:format)                                        bans#destroy
+GET    /bans/:id/edit(.:format)                                   bans#edit
+GET    /bans/new(.:format)                                        bans#new
+GET    /bulk_update_requests(.:format)                            bulk_update_requests#index
+POST   /bulk_update_requests(.:format)                            bulk_update_requests#create
+GET    /bulk_update_requests/:id(.:format)                        bulk_update_requests#show
+PATCH  /bulk_update_requests/:id(.:format)                        bulk_update_requests#update
+PUT    /bulk_update_requests/:id(.:format)                        bulk_update_requests#update
+DELETE /bulk_update_requests/:id(.:format)                        bulk_update_requests#destroy
+POST   /bulk_update_requests/:id/approve(.:format)                bulk_update_requests#approve
+GET    /bulk_update_requests/:id/edit(.:format)                   bulk_update_requests#edit
+GET    /bulk_update_requests/new(.:format)                        bulk_update_requests#new
+GET    /comment(.:format)                                         redirect(301)
+GET    /comment/index(.:format)                                   redirect(301)
+GET    /comment/new(.:format)                                     redirect(301, /comments)
+GET    /comment/search(.:format)                                  redirect(301)
+GET    /comment/show/:id(.:format)                                redirect(301, /comments/%{id})
+GET    /comments(.:format)                                        comments#index
+POST   /comments(.:format)                                        comments#create
+POST   /comments/:comment_id/votes(.:format)                      comment_votes#create
+DELETE /comments/:comment_id/votes/:id(.:format)                  comment_votes#destroy
+GET    /comments/:id(.:format)                                    comments#show
+PATCH  /comments/:id(.:format)                                    comments#update
+PUT    /comments/:id(.:format)                                    comments#update
+DELETE /comments/:id(.:format)                                    comments#destroy
+GET    /comments/:id/edit(.:format)                               comments#edit
+POST   /comments/:id/undelete(.:format)                           comments#undelete
+PUT    /comments/:id/unvote(.:format)                             comments#unvote
+GET    /comments/index_all(.:format)                              comments#index_all
+GET    /comments/new(.:format)                                    comments#new
+GET    /comments/search(.:format)                                 comments#search
+GET    /counts(.:format)                                          counts#index
+POST   /counts(.:format)                                          counts#create
+GET    /counts/:id(.:format)                                      counts#show
+PATCH  /counts/:id(.:format)                                      counts#update
+PUT    /counts/:id(.:format)                                      counts#update
+DELETE /counts/:id(.:format)                                      counts#destroy
+GET    /counts/:id/edit(.:format)                                 counts#edit
+GET    /counts/new(.:format)                                      counts#new
+GET    /counts/posts(.:format)                                    counts#posts
+GET    /delayed_jobs(.:format)                                    delayed_jobs#index
+GET    /dmails(.:format)                                          dmails#index
+POST   /dmails(.:format)                                          dmails#create
+GET    /dmails/:id(.:format)                                      dmails#show
+PATCH  /dmails/:id(.:format)                                      dmails#update
+PUT    /dmails/:id(.:format)                                      dmails#update
+DELETE /dmails/:id(.:format)                                      dmails#destroy
+GET    /dmails/:id/edit(.:format)                                 dmails#edit
+POST   /dmails/mark_all_as_read(.:format)                         dmails#mark_all_as_read
+GET    /dmails/new(.:format)                                      dmails#new
+GET    /dmails/search(.:format)                                   dmails#search
+POST   /dtext_preview(.:format)                                   dtext_previews#create
+GET    /explore/posts(.:format)                                   explore/posts#index
+POST   /explore/posts(.:format)                                   explore/posts#create
+GET    /explore/posts/:id(.:format)                               explore/posts#show
+PATCH  /explore/posts/:id(.:format)                               explore/posts#update
+PUT    /explore/posts/:id(.:format)                               explore/posts#update
+DELETE /explore/posts/:id(.:format)                               explore/posts#destroy
+GET    /explore/posts/:id/edit(.:format)                          explore/posts#edit
+GET    /explore/posts/hot(.:format)                               explore/posts#hot
+GET    /explore/posts/intro(.:format)                             explore/posts#intro
+GET    /explore/posts/missed_searches(.:format)                   explore/posts#missed_searches
+GET    /explore/posts/new(.:format)                               explore/posts#new
+GET    /explore/posts/popular(.:format)                           explore/posts#popular
+GET    /explore/posts/searches(.:format)                          explore/posts#searches
+GET    /favorite(.:format)                                        redirect(301)
+GET    /favorite/index(.:format)                                  redirect(301)
+GET    /favorite/list_users.json(.:format)                        legacy#unavailable
+GET    /favorite_groups(.:format)                                 favorite_groups#index
+POST   /favorite_groups(.:format)                                 favorite_groups#create
+GET    /favorite_groups/:favorite_group_id/order/edit(.:format)   favorite_group_orders#edit
+GET    /favorite_groups/:id(.:format)                             favorite_groups#show
+PATCH  /favorite_groups/:id(.:format)                             favorite_groups#update
+PUT    /favorite_groups/:id(.:format)                             favorite_groups#update
+DELETE /favorite_groups/:id(.:format)                             favorite_groups#destroy
+PUT    /favorite_groups/:id/add_post(.:format)                    favorite_groups#add_post
+GET    /favorite_groups/:id/edit(.:format)                        favorite_groups#edit
+GET    /favorite_groups/new(.:format)                             favorite_groups#new
+GET    /favorites(.:format)                                       favorites#index
+POST   /favorites(.:format)                                       favorites#create
+GET    /favorites/:id(.:format)                                   favorites#show
+PATCH  /favorites/:id(.:format)                                   favorites#update
+PUT    /favorites/:id(.:format)                                   favorites#update
+DELETE /favorites/:id(.:format)                                   favorites#destroy
+GET    /favorites/:id/edit(.:format)                              favorites#edit
+GET    /favorites/new(.:format)                                   favorites#new
+GET    /forum(.:format)                                           redirect(301)
+GET    /forum/index(.:format)                                     redirect(301)
+GET    /forum/search(.:format)                                    redirect(301, /forum_posts/search)
+GET    /forum/show/:id(.:format)                                  redirect(301)
+GET    /forum_posts(.:format)                                     forum_posts#index
+POST   /forum_posts(.:format)                                     forum_posts#create
+GET    /forum_posts/:id(.:format)                                 forum_posts#show
+PATCH  /forum_posts/:id(.:format)                                 forum_posts#update
+PUT    /forum_posts/:id(.:format)                                 forum_posts#update
+DELETE /forum_posts/:id(.:format)                                 forum_posts#destroy
+GET    /forum_posts/:id/edit(.:format)                            forum_posts#edit
+POST   /forum_posts/:id/undelete(.:format)                        forum_posts#undelete
+GET    /forum_posts/new(.:format)                                 forum_posts#new
+GET    /forum_posts/search(.:format)                              forum_posts#search
+GET    /forum_topics(.:format)                                    forum_topics#index
+POST   /forum_topics(.:format)                                    forum_topics#create
+POST   /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#create
+GET    /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#show
+PATCH  /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#update
+PUT    /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#update
+DELETE /forum_topics/:forum_topic_id/visit(.:format)              forum_topic_visits#destroy
+GET    /forum_topics/:forum_topic_id/visit/edit(.:format)         forum_topic_visits#edit
+GET    /forum_topics/:forum_topic_id/visit/new(.:format)          forum_topic_visits#new
+GET    /forum_topics/:id(.:format)                                forum_topics#show
+PATCH  /forum_topics/:id(.:format)                                forum_topics#update
+PUT    /forum_topics/:id(.:format)                                forum_topics#update
+DELETE /forum_topics/:id(.:format)                                forum_topics#destroy
+POST   /forum_topics/:id/create_merge(.:format)                   forum_topics#create_merge
+GET    /forum_topics/:id/edit(.:format)                           forum_topics#edit
+GET    /forum_topics/:id/new_merge(.:format)                      forum_topics#new_merge
+POST   /forum_topics/:id/subscribe(.:format)                      forum_topics#subscribe
+POST   /forum_topics/:id/undelete(.:format)                       forum_topics#undelete
+POST   /forum_topics/:id/unsubscribe(.:format)                    forum_topics#unsubscribe
+POST   /forum_topics/mark_all_as_read(.:format)                   forum_topics#mark_all_as_read
+GET    /forum_topics/new(.:format)                                forum_topics#new
+GET    /fposts(.:format)                                          forum_posts#index
+POST   /fposts(.:format)                                          forum_posts#create
+GET    /fposts/:id(.:format)                                      forum_posts#show
+PATCH  /fposts/:id(.:format)                                      forum_posts#update
+PUT    /fposts/:id(.:format)                                      forum_posts#update
+DELETE /fposts/:id(.:format)                                      forum_posts#destroy
+GET    /fposts/:id/edit(.:format)                                 forum_posts#edit
+GET    /fposts/new(.:format)                                      forum_posts#new
+GET    /ftopics(.:format)                                         forum_topics#index
+POST   /ftopics(.:format)                                         forum_topics#create
+GET    /ftopics/:id(.:format)                                     forum_topics#show
+PATCH  /ftopics/:id(.:format)                                     forum_topics#update
+PUT    /ftopics/:id(.:format)                                     forum_topics#update
+DELETE /ftopics/:id(.:format)                                     forum_topics#destroy
+GET    /ftopics/:id/edit(.:format)                                forum_topics#edit
+GET    /ftopics/new(.:format)                                     forum_topics#new
+GET    /help/:title(.:format)                                     redirect(301)
+GET    /intro(.:format)                                           redirect(301, /explore/posts/intro)
+GET    /ip_bans(.:format)                                         ip_bans#index
+POST   /ip_bans(.:format)                                         ip_bans#create
+GET    /ip_bans/:id(.:format)                                     ip_bans#show
+PATCH  /ip_bans/:id(.:format)                                     ip_bans#update
+PUT    /ip_bans/:id(.:format)                                     ip_bans#update
+DELETE /ip_bans/:id(.:format)                                     ip_bans#destroy
+GET    /ip_bans/:id/edit(.:format)                                ip_bans#edit
+GET    /ip_bans/new(.:format)                                     ip_bans#new
+POST   /iqdb_queries(.:format)                                    iqdb_queries#create
+GET    /janitor_trials(.:format)                                  janitor_trials#index
+POST   /janitor_trials(.:format)                                  janitor_trials#create
+GET    /janitor_trials/:id(.:format)                              janitor_trials#show
+PATCH  /janitor_trials/:id(.:format)                              janitor_trials#update
+PUT    /janitor_trials/:id(.:format)                              janitor_trials#update
+DELETE /janitor_trials/:id(.:format)                              janitor_trials#destroy
+PUT    /janitor_trials/:id/demote(.:format)                       janitor_trials#demote
+GET    /janitor_trials/:id/edit(.:format)                         janitor_trials#edit
+PUT    /janitor_trials/:id/promote(.:format)                      janitor_trials#promote
+GET    /janitor_trials/new(.:format)                              janitor_trials#new
+GET    /janitor_trials/test(.:format)                             janitor_trials#test
+GET    /jobs(.:format)                                            jobs#index
+POST   /jobs(.:format)                                            jobs#create
+GET    /jobs/:id(.:format)                                        jobs#show
+PATCH  /jobs/:id(.:format)                                        jobs#update
+PUT    /jobs/:id(.:format)                                        jobs#update
+DELETE /jobs/:id(.:format)                                        jobs#destroy
+GET    /jobs/:id/edit(.:format)                                   jobs#edit
+GET    /jobs/new(.:format)                                        jobs#new
+POST   /landing(.:format)                                         landings#create
+GET    /landing(.:format)                                         landings#show
+PATCH  /landing(.:format)                                         landings#update
+PUT    /landing(.:format)                                         landings#update
+DELETE /landing(.:format)                                         landings#destroy
+GET    /landing/edit(.:format)                                    landings#edit
+GET    /landing/new(.:format)                                     landings#new
+GET    /m/posts(.:format)                                         mobile/posts#index
+GET    /m/posts/:id(.:format)                                     mobile/posts#show
+GET    /maintenance/user/deletion(.:format)                       maintenance/user/deletions#show
+DELETE /maintenance/user/deletion(.:format)                       maintenance/user/deletions#destroy
+PATCH  /maintenance/user/dmail_filter(.:format)                   maintenance/user/dmail_filters#update
+PUT    /maintenance/user/dmail_filter(.:format)                   maintenance/user/dmail_filters#update
+GET    /maintenance/user/dmail_filter/edit(.:format)              maintenance/user/dmail_filters#edit
+POST   /maintenance/user/email_change(.:format)                   maintenance/user/email_changes#create
+GET    /maintenance/user/email_change/new(.:format)               maintenance/user/email_changes#new
+GET    /maintenance/user/email_notification(.:format)             maintenance/user/email_notifications#show
+DELETE /maintenance/user/email_notification(.:format)             maintenance/user/email_notifications#destroy
+POST   /maintenance/user/login_reminder(.:format)                 maintenance/user/login_reminders#create
+GET    /maintenance/user/login_reminder/new(.:format)             maintenance/user/login_reminders#new
+POST   /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#create
+PATCH  /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#update
+PUT    /maintenance/user/password_reset(.:format)                 maintenance/user/password_resets#update
+GET    /maintenance/user/password_reset/edit(.:format)            maintenance/user/password_resets#edit
+GET    /maintenance/user/password_reset/new(.:format)             maintenance/user/password_resets#new
+GET    /meta_searches/tags(.:format)                              meta_searches#tags
+GET    /mobile/posts(.:format)                                    mobile/posts#index
+GET    /mobile/posts/:id(.:format)                                mobile/posts#show
+GET    /mod_actions(.:format)                                     mod_actions#index
+POST   /mod_actions(.:format)                                     mod_actions#create
+GET    /mod_actions/:id(.:format)                                 mod_actions#show
+PATCH  /mod_actions/:id(.:format)                                 mod_actions#update
+PUT    /mod_actions/:id(.:format)                                 mod_actions#update
+DELETE /mod_actions/:id(.:format)                                 mod_actions#destroy
+GET    /mod_actions/:id/edit(.:format)                            mod_actions#edit
+GET    /mod_actions/new(.:format)                                 mod_actions#new
+GET    /moderator/dashboard(.:format)                             moderator/dashboards#show
+GET    /moderator/invitations(.:format)                           moderator/invitations#index
+POST   /moderator/invitations(.:format)                           moderator/invitations#create
+GET    /moderator/invitations(.:format)                           moderator/invitations#index
+POST   /moderator/invitations(.:format)                           moderator/invitations#create
+GET    /moderator/invitations/:id(.:format)                       moderator/invitations#show
+GET    /moderator/invitations/new(.:format)                       moderator/invitations#new
+GET    /moderator/invitations/new(.:format)                       moderator/invitations#new
+GET    /moderator/ip_addrs(.:format)                              moderator/ip_addrs#index
+GET    /moderator/ip_addrs(.:format)                              moderator/ip_addrs#index
+GET    /moderator/ip_addrs/search(.:format)                       moderator/ip_addrs#search
+GET    /moderator/ip_addrs/search(.:format)                       moderator/ip_addrs#search
+POST   /moderator/post/approval(.:format)                         moderator/post/approvals#create
+POST   /moderator/post/disapproval(.:format)                      moderator/post/disapprovals#create
+POST   /moderator/post/posts/:id/ban(.:format)                    moderator/post/posts#ban
+GET    /moderator/post/posts/:id/confirm_ban(.:format)            moderator/post/posts#confirm_ban
+GET    /moderator/post/posts/:id/confirm_delete(.:format)         moderator/post/posts#confirm_delete
+GET    /moderator/post/posts/:id/confirm_move_favorites(.:format) moderator/post/posts#confirm_move_favorites
+POST   /moderator/post/posts/:id/delete(.:format)                 moderator/post/posts#delete
+POST   /moderator/post/posts/:id/expunge(.:format)                moderator/post/posts#expunge
+POST   /moderator/post/posts/:id/move_favorites(.:format)         moderator/post/posts#move_favorites
+POST   /moderator/post/posts/:id/unban(.:format)                  moderator/post/posts#unban
+POST   /moderator/post/posts/:id/undelete(.:format)               moderator/post/posts#undelete
+GET    /moderator/post/queue(.:format)                            moderator/post/queues#show
+GET    /moderator/post/queue/random(.:format)                     moderator/post/queues#random
+PATCH  /moderator/tag(.:format)                                   moderator/tags#update
+PUT    /moderator/tag(.:format)                                   moderator/tags#update
+GET    /moderator/tag/edit(.:format)                              moderator/tags#edit
+GET    /news_updates(.:format)                                    news_updates#index
+POST   /news_updates(.:format)                                    news_updates#create
+GET    /news_updates/:id(.:format)                                news_updates#show
+PATCH  /news_updates/:id(.:format)                                news_updates#update
+PUT    /news_updates/:id(.:format)                                news_updates#update
+DELETE /news_updates/:id(.:format)                                news_updates#destroy
+GET    /news_updates/:id/edit(.:format)                           news_updates#edit
+GET    /news_updates/new(.:format)                                news_updates#new
+GET    /note(.:format)                                            redirect(301)
+GET    /note/history(.:format)                                    redirect(301)
+GET    /note/index(.:format)                                      redirect(301)
+GET    /note_previews(.:format)                                   note_previews#show
+GET    /note_versions(.:format)                                   note_versions#index
+GET    /notes(.:format)                                           notes#index
+POST   /notes(.:format)                                           notes#create
+GET    /notes/:id(.:format)                                       notes#show
+PATCH  /notes/:id(.:format)                                       notes#update
+PUT    /notes/:id(.:format)                                       notes#update
+DELETE /notes/:id(.:format)                                       notes#destroy
+GET    /notes/:id/edit(.:format)                                  notes#edit
+PUT    /notes/:id/revert(.:format)                                notes#revert
+GET    /notes/new(.:format)                                       notes#new
+GET    /notes/search(.:format)                                    notes#search
+GET    /pool(.:format)                                            redirect(301)
+GET    /pool/history/:id(.:format)                                redirect(301, /pool_versions?search[pool_id]=%{id})
+GET    /pool/index(.:format)                                      redirect(301)
+GET    /pool/recent_changes(.:format)                             redirect(301, /pool_versions)
+GET    /pool/show/:id(.:format)                                   redirect(301, /pools/%{id})
+POST   /pool_element(.:format)                                    pool_elements#create
+DELETE /pool_element(.:format)                                    pool_elements#destroy
+GET    /pool_element/all_select(.:format)                         pool_elements#all_select
+GET    /pool_versions(.:format)                                   pool_versions#index
+GET    /pools(.:format)                                           pools#index
+POST   /pools(.:format)                                           pools#create
+GET    /pools/:id(.:format)                                       pools#show
+PATCH  /pools/:id(.:format)                                       pools#update
+PUT    /pools/:id(.:format)                                       pools#update
+DELETE /pools/:id(.:format)                                       pools#destroy
+GET    /pools/:id/edit(.:format)                                  pools#edit
+PUT    /pools/:id/revert(.:format)                                pools#revert
+POST   /pools/:id/undelete(.:format)                              pools#undelete
+GET    /pools/:pool_id/order/edit(.:format)                       pool_orders#edit
+GET    /pools/gallery(.:format)                                   pools#gallery
+GET    /pools/new(.:format)                                       pools#new
+GET    /post(.:format)                                            redirect(301)
+GET    /post/atom(.:format)                                       redirect(301)
+GET    /post/atom.feed(.:format)                                  redirect(301)
+GET    /post/create.xml(.:format)                                 legacy#create_post {:format=&gt;/xml/}
+GET    /post/flag/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/index(.:format)                                      redirect(301)
+GET    /post/index.json(.:format)                                 legacy#posts {:format=&gt;/json/}
+GET    /post/index.xml(.:format)                                  legacy#posts {:format=&gt;/xml/}
+GET    /post/moderate(.:format)                                   redirect(301, /moderator/post/queue)
+GET    /post/piclens(.:format)                                    legacy#unavailable
+GET    /post/popular_by_day(.:format)                             redirect(301, /explore/posts/popular)
+GET    /post/popular_by_month(.:format)                           redirect(301, /explore/posts/popular)
+GET    /post/popular_by_week(.:format)                            redirect(301, /explore/posts/popular)
+GET    /post/show(.:format)                                       redirect(301)
+GET    /post/show/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/show/:id/:tag_title(.:format)                        redirect(301, /posts/%{id})
+GET    /post/upload(.:format)                                     redirect(301, /uploads/new)
+GET    /post/view/:id(.:format)                                   redirect(301, /posts/%{id})
+GET    /post/view/:id/:tag_title(.:format)                        redirect(301, /posts/%{id})
+GET    /post_appeals(.:format)                                    post_appeals#index
+POST   /post_appeals(.:format)                                    post_appeals#create
+GET    /post_appeals/:id(.:format)                                post_appeals#show
+PATCH  /post_appeals/:id(.:format)                                post_appeals#update
+PUT    /post_appeals/:id(.:format)                                post_appeals#update
+DELETE /post_appeals/:id(.:format)                                post_appeals#destroy
+GET    /post_appeals/:id/edit(.:format)                           post_appeals#edit
+GET    /post_appeals/new(.:format)                                post_appeals#new
+GET    /post_flags(.:format)                                      post_flags#index
+POST   /post_flags(.:format)                                      post_flags#create
+GET    /post_flags/:id(.:format)                                  post_flags#show
+PATCH  /post_flags/:id(.:format)                                  post_flags#update
+PUT    /post_flags/:id(.:format)                                  post_flags#update
+DELETE /post_flags/:id(.:format)                                  post_flags#destroy
+GET    /post_flags/:id/edit(.:format)                             post_flags#edit
+GET    /post_flags/new(.:format)                                  post_flags#new
+GET    /post_tag_history(.:format)                                redirect(301)
+GET    /post_tag_history/index(.:format)                          redirect(301)
+GET    /post_versions(.:format)                                   post_versions#index
+PUT    /post_versions/:id/undo(.:format)                          post_versions#undo
+GET    /post_versions/search(.:format)                            post_versions#search
+GET    /posts(.:format)                                           posts#index
+POST   /posts(.:format)                                           posts#create
+GET    /posts/:id(.:format)                                       posts#show
+PATCH  /posts/:id(.:format)                                       posts#update
+PUT    /posts/:id(.:format)                                       posts#update
+DELETE /posts/:id(.:format)                                       posts#destroy
+PUT    /posts/:id/copy_notes(.:format)                            posts#copy_notes
+GET    /posts/:id/edit(.:format)                                  posts#edit
+PUT    /posts/:id/mark_as_translated(.:format)                    posts#mark_as_translated
+PUT    /posts/:id/revert(.:format)                                posts#revert
+GET    /posts/:id/show_seq(.:format)                              posts#show_seq
+PUT    /posts/:id/unvote(.:format)                                posts#unvote
+GET    /posts/:post_id/events(.:format)                           post_events#index
+POST   /posts/:post_id/votes(.:format)                            post_votes#create
+DELETE /posts/:post_id/votes/:id(.:format)                        post_votes#destroy
+GET    /posts/home(.:format)                                      posts#home
+GET    /posts/new(.:format)                                       posts#new
+GET    /posts/random(.:format)                                    posts#random
+GET    /related_tag(.:format)                                     related_tags#show
+PATCH  /related_tag(.:format)                                     related_tags#update
+PUT    /related_tag(.:format)                                     related_tags#update
+GET    /reports/contributors(.:format)                            reports#contributors
+GET    /reports/janitor_trials(.:format)                          reports#janitor_trials
+GET    /reports/post_versions(.:format)                           reports#post_versions
+POST   /reports/post_versions_create(.:format)                    reports#post_versions_create
+GET    /reports/similar_users(.:format)                           reports#similar_users
+GET    /reports/uploads(.:format)                                 reports#uploads
+GET    /reports/user_promotions(.:format)                         reports#user_promotions
+POST   /saved_search_category_change(.:format)                    saved_search_category_changes#create
+GET    /saved_search_category_change/new(.:format)                saved_search_category_changes#new
+GET    /saved_searches(.:format)                                  saved_searches#index
+POST   /saved_searches(.:format)                                  saved_searches#create
+PATCH  /saved_searches/:id(.:format)                              saved_searches#update
+PUT    /saved_searches/:id(.:format)                              saved_searches#update
+DELETE /saved_searches/:id(.:format)                              saved_searches#destroy
+GET    /saved_searches/:id/edit(.:format)                         saved_searches#edit
+GET    /saved_searches/categories(.:format)                       saved_searches#categories
+GET    /saved_searches/new(.:format)                              saved_searches#new
+POST   /session(.:format)                                         sessions#create
+GET    /session(.:format)                                         sessions#show
+PATCH  /session(.:format)                                         sessions#update
+PUT    /session(.:format)                                         sessions#update
+DELETE /session(.:format)                                         sessions#destroy
+GET    /session/edit(.:format)                                    sessions#edit
+GET    /session/new(.:format)                                     sessions#new
+GET    /session/sign_out(.:format)                                sessions#sign_out
+GET    /source(.:format)                                          sources#show
+POST   /static/accept_terms_of_service(.:format)                  static#accept_terms_of_service
+GET    /static/benchmark(.:format)                                static#benchmark
+GET    /static/bookmarklet(.:format)                              static#bookmarklet
+GET    /static/contact(.:format)                                  static#contact
+GET    /static/keyboard_shortcuts(.:format)                       static#keyboard_shortcuts
+GET    /static/mrtg(.:format)                                     static#mrtg
+GET    /static/name_change(.:format)                              static#name_change
+GET    /static/site_map(.:format)                                 static#site_map
+GET    /static/terms_of_service(.:format)                         static#terms_of_service
+GET    /super_voters(.:format)                                    super_voters#index
+GET    /tag(.:format)                                             redirect(301)
+GET    /tag/index(.:format)                                       redirect(301)
+GET    /tag/index.json(.:format)                                  legacy#tags {:format=&gt;/json/}
+GET    /tag/index.xml(.:format)                                   legacy#tags {:format=&gt;/xml/}
+POST   /tag_alias_request(.:format)                               tag_alias_requests#create
+GET    /tag_alias_request/new(.:format)                           tag_alias_requests#new
+GET    /tag_aliases(.:format)                                     tag_aliases#index
+POST   /tag_aliases(.:format)                                     tag_aliases#create
+GET    /tag_aliases/:id(.:format)                                 tag_aliases#show
+PATCH  /tag_aliases/:id(.:format)                                 tag_aliases#update
+PUT    /tag_aliases/:id(.:format)                                 tag_aliases#update
+DELETE /tag_aliases/:id(.:format)                                 tag_aliases#destroy
+POST   /tag_aliases/:id/approve(.:format)                         tag_aliases#approve
+GET    /tag_aliases/:id/edit(.:format)                            tag_aliases#edit
+POST   /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#create
+GET    /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#show
+PATCH  /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#update
+PUT    /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#update
+DELETE /tag_aliases/:tag_alias_id/correction(.:format)            tag_alias_corrections#destroy
+GET    /tag_aliases/:tag_alias_id/correction/edit(.:format)       tag_alias_corrections#edit
+GET    /tag_aliases/:tag_alias_id/correction/new(.:format)        tag_alias_corrections#new
+GET    /tag_aliases/new(.:format)                                 tag_aliases#new
+GET    /tag_implication(.:format)                                 redirect(301)
+POST   /tag_implication_request(.:format)                         tag_implication_requests#create
+GET    /tag_implication_request/new(.:format)                     tag_implication_requests#new
+GET    /tag_implications(.:format)                                tag_implications#index
+POST   /tag_implications(.:format)                                tag_implications#create
+GET    /tag_implications/:id(.:format)                            tag_implications#show
+PATCH  /tag_implications/:id(.:format)                            tag_implications#update
+PUT    /tag_implications/:id(.:format)                            tag_implications#update
+DELETE /tag_implications/:id(.:format)                            tag_implications#destroy
+POST   /tag_implications/:id/approve(.:format)                    tag_implications#approve
+GET    /tag_implications/:id/edit(.:format)                       tag_implications#edit
+GET    /tag_implications/new(.:format)                            tag_implications#new
+GET    /tag_subscriptions(.:format)                               tag_subscriptions#index
+POST   /tag_subscriptions(.:format)                               tag_subscriptions#create
+GET    /tag_subscriptions/:id(.:format)                           tag_subscriptions#show
+PATCH  /tag_subscriptions/:id(.:format)                           tag_subscriptions#update
+PUT    /tag_subscriptions/:id(.:format)                           tag_subscriptions#update
+DELETE /tag_subscriptions/:id(.:format)                           tag_subscriptions#destroy
+GET    /tag_subscriptions/:id/edit(.:format)                      tag_subscriptions#edit
+POST   /tag_subscriptions/:id/migrate(.:format)                   tag_subscriptions#migrate
+GET    /tag_subscriptions/:id/posts(.:format)                     tag_subscriptions#posts
+GET    /tag_subscriptions/new(.:format)                           tag_subscriptions#new
+GET    /tags(.:format)                                            tags#index
+POST   /tags(.:format)                                            tags#create
+GET    /tags/:id(.:format)                                        tags#show
+PATCH  /tags/:id(.:format)                                        tags#update
+PUT    /tags/:id(.:format)                                        tags#update
+DELETE /tags/:id(.:format)                                        tags#destroy
+GET    /tags/:id/edit(.:format)                                   tags#edit
+POST   /tags/:tag_id/correction(.:format)                         tag_corrections#create
+GET    /tags/:tag_id/correction(.:format)                         tag_corrections#show
+GET    /tags/:tag_id/correction/new(.:format)                     tag_corrections#new
+GET    /tags/autocomplete(.:format)                               tags#autocomplete
+GET    /tags/new(.:format)                                        tags#new
+GET    /uploads(.:format)                                         uploads#index
+POST   /uploads(.:format)                                         uploads#create
+GET    /uploads/:id(.:format)                                     uploads#show
+PATCH  /uploads/:id(.:format)                                     uploads#update
+PUT    /uploads/:id(.:format)                                     uploads#update
+DELETE /uploads/:id(.:format)                                     uploads#destroy
+GET    /uploads/:id/edit(.:format)                                uploads#edit
+GET    /uploads/batch(.:format)                                   uploads#batch
+GET    /uploads/image_proxy(.:format)                             uploads#image_proxy
+GET    /uploads/new(.:format)                                     uploads#new
+GET    /user(.:format)                                            redirect(301)
+GET    /user/index(.:format)                                      redirect(301)
+GET    /user/index.json(.:format)                                 legacy#users {:format=&gt;/json/}
+GET    /user/index.xml(.:format)                                  legacy#users {:format=&gt;/xml/}
+GET    /user/login(.:format)                                      redirect(301, /sessions/new)
+GET    /user/show/:id(.:format)                                   redirect(301, /users/%{id})
+GET    /user_feedbacks(.:format)                                  user_feedbacks#index
+POST   /user_feedbacks(.:format)                                  user_feedbacks#create
+GET    /user_feedbacks/:id(.:format)                              user_feedbacks#show
+PATCH  /user_feedbacks/:id(.:format)                              user_feedbacks#update
+PUT    /user_feedbacks/:id(.:format)                              user_feedbacks#update
+DELETE /user_feedbacks/:id(.:format)                              user_feedbacks#destroy
+GET    /user_feedbacks/:id/edit(.:format)                         user_feedbacks#edit
+GET    /user_feedbacks/new(.:format)                              user_feedbacks#new
+GET    /user_feedbacks/search(.:format)                           user_feedbacks#search
+GET    /user_name_change_requests(.:format)                       user_name_change_requests#index
+POST   /user_name_change_requests(.:format)                       user_name_change_requests#create
+GET    /user_name_change_requests/:id(.:format)                   user_name_change_requests#show
+PATCH  /user_name_change_requests/:id(.:format)                   user_name_change_requests#update
+PUT    /user_name_change_requests/:id(.:format)                   user_name_change_requests#update
+DELETE /user_name_change_requests/:id(.:format)                   user_name_change_requests#destroy
+POST   /user_name_change_requests/:id/approve(.:format)           user_name_change_requests#approve
+GET    /user_name_change_requests/:id/edit(.:format)              user_name_change_requests#edit
+POST   /user_name_change_requests/:id/reject(.:format)            user_name_change_requests#reject
+GET    /user_name_change_requests/new(.:format)                   user_name_change_requests#new
+GET    /user_record(.:format)                                     redirect(301)
+POST   /user_revert(.:format)                                     user_reverts#create
+GET    /user_revert/new(.:format)                                 user_reverts#new
+POST   /user_upgrade(.:format)                                    user_upgrades#create
+GET    /user_upgrade(.:format)                                    user_upgrades#show
+GET    /user_upgrade/new(.:format)                                user_upgrades#new
+GET    /users(.:format)                                           users#index
+POST   /users(.:format)                                           users#create
+GET    /users/:id(.:format)                                       users#show
+PATCH  /users/:id(.:format)                                       users#update
+PUT    /users/:id(.:format)                                       users#update
+DELETE /users/:id(.:format)                                       users#destroy
+DELETE /users/:id/cache(.:format)                                 users#cache
+GET    /users/:id/edit(.:format)                                  users#edit
+GET    /users/:user_id/password/edit(.:format)                    maintenance/user/passwords#edit
+GET    /users/custom_style(.:format)                              users#custom_style
+GET    /users/new(.:format)                                       users#new
+GET    /users/search(.:format)                                    users#search
+GET    /wiki(.:format)                                            redirect(301)
+GET    /wiki/history/:title(.:format)                             redirect(301, /wiki_page_versions?title=%{title})
+GET    /wiki/index(.:format)                                      redirect(301)
+GET    /wiki/recent_changes(.:format)                             redirect(301)
+GET    /wiki/rename(.:format)                                     redirect(301, /wiki_pages)
+GET    /wiki/show(.:format)                                       redirect(301)
+GET    /wiki_page_versions(.:format)                              wiki_page_versions#index
+GET    /wiki_page_versions/:id(.:format)                          wiki_page_versions#show
+GET    /wiki_page_versions/diff(.:format)                         wiki_page_versions#diff
+GET    /wiki_pages(.:format)                                      wiki_pages#index
+POST   /wiki_pages(.:format)                                      wiki_pages#create
+GET    /wiki_pages/:id(.:format)                                  wiki_pages#show
+PATCH  /wiki_pages/:id(.:format)                                  wiki_pages#update
+PUT    /wiki_pages/:id(.:format)                                  wiki_pages#update
+DELETE /wiki_pages/:id(.:format)                                  wiki_pages#destroy
+GET    /wiki_pages/:id/edit(.:format)                             wiki_pages#edit
+PUT    /wiki_pages/:id/revert(.:format)                           wiki_pages#revert
+GET    /wiki_pages/new(.:format)                                  wiki_pages#new
+GET    /wiki_pages/search(.:format)                               wiki_pages#search
+GET    /wiki_pages/show_or_new(.:format)                          wiki_pages#show_or_new
+GET    /wpages(.:format)                                          wiki_pages#index
+POST   /wpages(.:format)                                          wiki_pages#create
+GET    /wpages/:id(.:format)                                      wiki_pages#show
+PATCH  /wpages/:id(.:format)                                      wiki_pages#update
+PUT    /wpages/:id(.:format)                                      wiki_pages#update
+DELETE /wpages/:id(.:format)                                      wiki_pages#destroy
+GET    /wpages/:id/edit(.:format)                                 wiki_pages#edit
+GET    /wpages/new(.:format)                                      wiki_pages#new
+</pre></div></div>
+
+
+          
+      </div>
+
+        <div id="wiki-page-posts"></div>
+    </section>
+  </div>
+</div>
+
+
+
+
+
+  </div>
+
+  <footer id="page-footer">
+  Running Danbooru 
+    (<a href="https://github.com/r888888888/danbooru/commit/c051103d35c4836586dc98e9efeb9bf5970dee07">c051103d35c4836586dc98e9efeb9bf5970dee07</a>)
+  &ndash; <a href="/static/terms_of_service">Rules</a>
+  &ndash; <a href="/static/contact">Contact</a>
+    &ndash; <a href="/static/keyboard_shortcuts">Keyboard shortcuts available</a>
+    <span id="desktop-version-link">
+      &ndash;
+      <a rel="nofollow" href="/users/475667/edit">Disable responsive mode</a>
+    </span>
+</footer>
+
+</body></html>

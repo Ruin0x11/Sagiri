@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/list_servers_row"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+>
+    <TextView
+            style="@style/ListItem"
+            tools:text="the quick brown fox jumps over the lazy dog"
+            android:id="@+id/server_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+    />
+    <TextView
+            style="@style/ListSubItem"
+            tools:text="the quick brown fox jumps over the lazy dog"
+            android:id="@+id/server_uri"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+    />
+</LinearLayout>
